@@ -644,7 +644,8 @@ function renderHistoryCharts() {
   if (!h || !T) { $('#hgrid').innerHTML = '<div class="section-desc">과거 데이터 로딩 중…</div>'; return; }
   const asset = T.asset;
   const coinH = h[asset], stockH = h[state.tab];
-  const startDay = Math.max(strToDay(T.coins[0][0]), coinH.t[0]);
+  // 주가 시계열의 최초 시점부터 (트레저리 시작 전 구간은 P/Coin·주당보유량이 빈 값으로 표시됨)
+  const startDay = Math.max(stockH.t[0], coinH.t[0]);
 
   // master axis: coin history days from treasury start; forward-fill stock closes
   const stockMap = new Map(stockH.t.map((d, i) => [d, stockH.c[i]]));
