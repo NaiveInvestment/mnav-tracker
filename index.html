@@ -15,6 +15,7 @@
   --baseline:    #c3c2b7;
   --border:      rgba(11,11,11,0.10);
   --series-1:    #2a78d6;
+  --series-2:    #1baf7a;
   --up:          #d03b3b;   /* KR convention: red = up */
   --down:        #2a78d6;   /* blue = down */
   --neutral-bg:  #f0efec;
@@ -30,6 +31,7 @@
     --baseline:    #383835;
     --border:      rgba(255,255,255,0.10);
     --series-1:    #3987e5;
+    --series-2:    #199e70;
     --up:          #e66767;
     --down:        #3987e5;
     --neutral-bg:  #383835;
@@ -85,7 +87,7 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
 .chart-grid .gl.ref { background: var(--baseline); width: 1px; }
 .chart-row { display: flex; align-items: center; height: 30px; position: relative; }
 .chart-row .cname {
-  width: 158px; flex: none; font-size: 12.5px; color: var(--ink-2);
+  width: 120px; flex: none; font-size: 12.5px; color: var(--ink-2);
   padding-right: 10px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chart-row .track { flex: 1; position: relative; height: 100%; }
@@ -102,7 +104,7 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
   padding-left: 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .chart-axis { display: flex; margin-top: 6px; }
-.chart-axis .pad { width: 158px; flex: none; }
+.chart-axis .pad { width: 120px; flex: none; }
 .chart-axis .ticks { flex: 1; position: relative; height: 16px; font-size: 11px; color: var(--ink-muted); }
 .chart-axis .tick { position: absolute; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
 .chart-axis .tick.ref { color: var(--ink-2); font-weight: 600; }
@@ -156,9 +158,48 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
 .crow.pcoin .k b { color: var(--ink); font-weight: 700; font-size: 13.5px; }
 .crow.pcoin .k i { display: block; margin: 0; }
 .crow .disc { font-size: 11.5px; color: var(--ink-muted); font-weight: 500; }
-.ccard.legacy .crow.pcoin { background: transparent; }
-.ccard.legacy .crow.pcoin .v { color: var(--ink-muted); font-weight: 600; }
-.ccard.legacy .crow.hl { background: transparent; }
+
+/* ---- history charts ---- */
+.tabs { display: flex; gap: 6px; margin: 0 2px 12px; }
+.tab {
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 5px 14px; cursor: pointer;
+}
+.tab.active { color: var(--surface); background: var(--series-1); border-color: var(--series-1); }
+.hgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; margin-bottom: 20px; }
+@media (max-width: 500px) { .hgrid { grid-template-columns: 1fr; } }
+.hcard { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.hcard h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 8px; }
+.hlegend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-2); margin-bottom: 6px; }
+.hlegend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.hlegend .lg i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.hchart svg { display: block; width: 100%; height: auto; }
+.hchart text { font-family: inherit; font-size: 10.5px; fill: var(--ink-muted); }
+.hchart .gridline { stroke: var(--grid); stroke-width: 1; }
+.hchart .refline { stroke: var(--baseline); stroke-width: 1; }
+.hchart .xhair { stroke: var(--baseline); stroke-width: 1; }
+
+/* ---- KR table (secondary) ---- */
+details.krsec { margin-bottom: 20px; }
+details.krsec summary {
+  cursor: pointer; font-size: 14px; font-weight: 600; color: var(--ink-2);
+  padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+}
+details.krsec[open] summary { border-radius: 10px 10px 0 0; }
+details.krsec .krbody {
+  background: var(--surface); border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 10px 10px; padding: 12px 16px 16px; overflow-x: auto;
+}
+table.krt { width: 100%; border-collapse: collapse; white-space: nowrap; }
+.krt th, .krt td { padding: 8px 10px; text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+.krt th { font-size: 11.5px; font-weight: 500; color: var(--ink-muted); border-bottom: 1px solid var(--baseline); }
+.krt td { border-bottom: 1px solid var(--grid); }
+.krt tr:last-child td { border-bottom: none; }
+.krt th:first-child, .krt td:first-child { text-align: left; }
+.krt td:first-child { font-weight: 600; }
+.krt .tick2 { font-weight: 400; color: var(--ink-muted); font-size: 12px; margin-left: 6px; }
+.krt td.muted { color: var(--ink-muted); font-weight: 400; }
 
 footer { color: var(--ink-muted); font-size: 12px; line-height: 1.8; }
 footer b { color: var(--ink-2); font-weight: 600; }
@@ -181,32 +222,45 @@ footer b { color: var(--ink-2); font-weight: 600; }
   <div class="tiles" id="tiles"></div>
 
   <div class="section-title">기업별 상세</div>
-  <div class="section-desc">주당 코인 가치 = 보유 코인 가치 ÷ 주식수 · P/Coin = 현재 주가 ÷ 주당 코인 가치. 각사 상장 통화 기준(미국 $, 국내 ₩).</div>
+  <div class="section-desc">주당 코인 가치 = 보유 코인 가치 ÷ 주식수 · P/Coin = 현재 주가 ÷ 주당 코인 가치.</div>
   <div class="ccards" id="ccards"></div>
 
+  <div class="section-title">P/Coin 복기 — 시가총액과 보유 코인 가치의 관계</div>
+  <div class="section-desc">주가 = 주당 코인 보유량 × 코인 가격 × 멀티플. 멀티플(P/Coin)은 통상 1~2×, 과열 구간에서 2~4×.</div>
+  <div class="tabs" id="htabs"></div>
+  <div class="hgrid" id="hgrid"></div>
+
+  <details class="krsec">
+    <summary>국내 상장사 (참고) — 비트맥스 · 비트플래닛 · 파라택시스 · 위메이드 · 네오위즈</summary>
+    <div class="krbody">
+      <table class="krt" id="krt"></table>
+      <div class="desc" style="margin:10px 2px 0">국내 보유코인은 업비트 시세로 평가 · 주식수는 시총÷주가 추정 · 파라택시스코리아는 거래정지(마지막 체결가) · 위메이드·네오위즈는 단순 보유(2024년 이후 미갱신).</div>
+    </div>
+  </details>
+
   <div class="card">
-    <h2>P/Coin (mNAV) — 시가총액 ÷ 보유 크립토 가치</h2>
-    <div class="desc">1.0× 미만이면 시총이 보유 코인 가치보다 싸다는 뜻 (디스카운트). 단순보유 기업(위메이드·네오위즈)은 코인 비중이 작아 제외.</div>
+    <h2>현재 P/Coin (mNAV) 비교</h2>
+    <div class="desc">1.0× 미만이면 시총이 보유 코인 가치보다 싸다는 뜻 (디스카운트).</div>
     <div class="chart" id="chart"></div>
   </div>
 
   <footer>
     <b>참고</b><br>
-    · 보유량·미국 주식수는 각사 최근 공시/발표 기준 고정값이며 자동 갱신되지 않음 (index.html 상단 CONFIG에서 수정). 시세·시총·환율은 15초마다 자동 갱신. 국내 주식수는 시총÷주가 추정치.<br>
-    · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,130만 (CONFIG에서 수정).<br>
-    · MSTR은 전환사채 약 $6.7B·우선주 약 $15.5B이 별도로 있어 EV 기준 mNAV는 더 높음(약 1.07×, 2026-06 기준). 미국 주식수는 기본(basic) 기준 — 희석 반영 시 mNAV가 다소 올라감.<br>
-    · 파라택시스코리아는 거래정지 중(마지막 체결가 기준). 비트맥스 보유량은 언론 보도 기준. 위메이드·네오위즈 보유량은 2024년 이후 미갱신.<br>
-    · 시세: 업비트(KRW 코인) · 바이낸스(USD 코인) · 야후파이낸스(미국 주식) · 네이버증권(국내 주식·환율). 투자 판단의 근거가 아닌 참고용.
+    · 보유량·미국 주식수는 각사 최근 공시/발표 기준 고정값이며 자동 갱신되지 않음 (CONFIG·treasury-history.js에서 수정). 시세·시총·환율은 자동 갱신.<br>
+    · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,130만.<br>
+    · MSTR은 전환사채 약 $6.7B·우선주 약 $15.5B이 별도로 있어 EV 기준 mNAV는 더 높음(약 1.07×, 2026-06 기준). 복기 차트의 주식수는 완전희석 기준, 카드의 주식수는 기본(basic) 기준.<br>
+    · 시세: 업비트 · 바이낸스 · 야후파이낸스 · 네이버증권. 과거 시세·희석주식수 추이는 근사치 포함. 투자 판단의 근거가 아닌 참고용.
   </footer>
 </div>
 
 <div id="tooltip"></div>
 
+<script src="treasury-history.js"></script>
 <script>
 /* ================= CONFIG — 보유량·주식수 수동 갱신 지점 ================= */
 const SUPPLY = { BTC: 19900000, ETH: 121300000 };  // 지분율 계산용 유통량 근사
 const US_COMPANIES = [
-  { ticker: 'MSTR', name: 'Strategy',  shares: 351600000, sharesAsOf: '2026-07-02',
+  { ticker: 'MSTR', name: 'Strategy',  shares: 371600000, sharesAsOf: '2026-06-28', // Class A 352.0M + Class B 19.6M (strategy.com/shares)
     holdings: [{ asset: 'BTC', coins: 847363, asOf: '2026-06-28' }] },
   { ticker: 'BMNR', name: 'BitMine',   shares: 569580000, sharesAsOf: '2026-07-02',
     holdings: [{ asset: 'ETH', coins: 5700040, asOf: '2026-06-28' }, { asset: 'BTC', coins: 206, asOf: '2026-06-28' }] },
@@ -225,7 +279,7 @@ const REFRESH_MS = 15000;
 /* ======================================================================== */
 
 const $ = (s, el) => (el || document).querySelector(s);
-const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false };
+const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false, history: null, tab: 'MSTR' };
 // GitHub Pages 등 정적 호스팅에선 프록시(/api)가 없으므로 Actions가 만든 quotes.json 사용
 const IS_STATIC = !/^(localhost|127\.)/.test(location.hostname) || location.search.includes('static');
 
@@ -314,14 +368,12 @@ function buildRows() {
       changePct: q?.price != null && q?.prevClose ? (q.price / q.prevClose - 1) * 100 : null,
       coinValueKrw: cv != null && fxr ? cv * fxr : null,
       mcapKrw: mcap != null && fxr ? mcap * fxr : null,
-      inChart: true,
     });
   }
   for (const c of KR_COMPANIES) {
     const q = state.kr[c.code];
     const price = q?.price;
     const mcap = q?.marketCap ?? null;
-    const shares = mcap != null && price ? mcap / price : null;
     const holdings = c.holdings.map(h => {
       const p = state.crypto[h.asset + '_KRW']?.price;
       return { ...h, coinPrice: p, value: p != null ? h.coins * p : null };
@@ -329,14 +381,12 @@ function buildRows() {
     const cv = holdings.every(h => h.value != null) ? holdings.reduce((s, h) => s + h.value, 0) : null;
     rows.push({
       key: c.code, name: c.name, tick2: c.code, market: 'KR', cur: 'KRW',
-      holdings, shares, sharesLabel: '주식수 (추정)', sharesAsOf: null,
-      coinValue: cv, mcap, mnav: mcap != null && cv ? mcap / cv : null,
-      perShare: cv != null && shares ? cv / shares : null,
+      holdings, coinValue: cv, mcap,
+      mnav: mcap != null && cv ? mcap / cv : null,
       price, priceStr: fmt.krw(price),
       changePct: c.halted ? null : q?.changePct,
       coinValueKrw: cv, mcapKrw: mcap,
       halted: c.halted, legacy: c.legacy,
-      inChart: !c.legacy,
     });
   }
   return rows;
@@ -365,7 +415,7 @@ function renderTiles() {
 
 function renderChart(rows) {
   $('#tooltip').style.display = 'none'; // 재렌더링으로 mouseleave가 유실될 수 있음
-  const data = rows.filter(r => r.inChart && r.mnav != null).sort((a, b) => b.mnav - a.mnav);
+  const data = rows.filter(r => r.market === 'US' && r.mnav != null).sort((a, b) => b.mnav - a.mnav);
   if (!data.length) { $('#chart').innerHTML = '<div class="desc">데이터 없음</div>'; return; }
   const maxV = Math.max(1.15, Math.max(...data.map(r => r.mnav)) * 1.12);
   const step = maxV > 2.4 ? 0.5 : 0.25;
@@ -379,7 +429,7 @@ function renderChart(rows) {
   }
   const rowsHtml = data.map(r => `
     <div class="chart-row" data-key="${r.key}">
-      <div class="cname">${r.name}${r.halted ? ' *' : ''}</div>
+      <div class="cname">${r.name}</div>
       <div class="track">
         <div class="chart-grid">${grid}</div>
         <div class="bar" style="width:${pct(r.mnav)}%"></div>
@@ -389,37 +439,16 @@ function renderChart(rows) {
   $('#chart').innerHTML = `
     <div class="chart-plot">${rowsHtml}</div>
     <div class="chart-axis"><div class="pad"></div><div class="ticks">${ticks}</div></div>`;
-
-  // hover tooltip (values also in company cards — tooltip enhances, never gates)
-  const tt = $('#tooltip');
-  const byKey = Object.fromEntries(data.map(r => [r.key, r]));
-  $('#chart').querySelectorAll('.chart-row').forEach(el => {
-    el.addEventListener('mousemove', e => {
-      const r = byKey[el.dataset.key];
-      tt.innerHTML = `
-        <div class="tt-name">${r.name} <span style="color:var(--ink-muted);font-weight:400">${r.tick2}</span></div>
-        <div class="tt-row"><span>보유</span><b>${r.holdings.map(h => fmt.coins(h.coins, h.asset)).join(' + ')}</b></div>
-        <div class="tt-row"><span>코인가치</span><b>${fmt.krwBig(r.coinValueKrw)}</b></div>
-        <div class="tt-row"><span>시가총액</span><b>${fmt.krwBig(r.mcapKrw)}</b></div>
-        <div class="tt-row"><span>mNAV</span><b>${fmt.mnav(r.mnav)}</b></div>`;
-      tt.style.display = 'block';
-      const x = Math.min(e.clientX + 14, window.innerWidth - tt.offsetWidth - 8);
-      const y = Math.min(e.clientY + 14, window.innerHeight - tt.offsetHeight - 8);
-      tt.style.left = x + 'px'; tt.style.top = y + 'px';
-    });
-    el.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
-  });
 }
 
 function renderCards(rows) {
-  const order = [...rows.filter(r => !r.legacy), ...rows.filter(r => r.legacy)]
-    .sort((a, b) => (a.legacy ? 1 : 0) - (b.legacy ? 1 : 0) || (b.coinValueKrw ?? 0) - (a.coinValueKrw ?? 0));
-  const money = (r, v, frac) => r.cur === 'USD' ? fmt.usdBig(v) : fmt.krwBig(v);
+  const order = rows.filter(r => r.market === 'US').sort((a, b) => (b.coinValueKrw ?? 0) - (a.coinValueKrw ?? 0));
+  const money = (r, v) => r.cur === 'USD' ? fmt.usdBig(v) : fmt.krwBig(v);
   const unit = (r, v, frac) => r.cur === 'USD' ? fmt.usd(v, frac) : fmt.krw(v);
 
   $('#ccards').innerHTML = order.map(r => {
     const disc = r.mnav != null ? (r.mnav - 1) * 100 : null;
-    const discStr = disc == null || r.legacy ? ''
+    const discStr = disc == null ? ''
       : (disc >= 0 ? '+' + disc.toFixed(1) + '% 프리미엄' : disc.toFixed(1) + '% 디스카운트');
     const holdingsHtml = r.holdings.map(h => `
       <div class="crow hl"><span class="k">보유 <b>${h.asset}</b><i>${h.asOf} 기준</i></span><span class="v">${h.coins.toLocaleString('ko-KR')}</span></div>
@@ -428,11 +457,10 @@ function renderCards(rows) {
       <div class="crow"><span class="k">보유 ${h.asset} 가치</span><span class="v">${money(r, h.value)}</span></div>
       <div class="csep"></div>`).join('');
     return `
-    <div class="ccard${r.legacy ? ' legacy' : ''}">
+    <div class="ccard">
       <div class="chead">
         <span class="nm">${r.name}</span><span class="tk">${r.tick2}</span>
-        ${r.halted ? '<span class="badge">거래정지</span>' : ''}${r.legacy ? '<span class="badge">단순보유</span>' : ''}
-        <span class="mkt">${r.market === 'US' ? 'NASDAQ/NYSE' : 'KRX'}</span>
+        <span class="mkt">NASDAQ/NYSE</span>
       </div>
       <div class="crow"><span class="k">${r.sharesLabel}${r.sharesAsOf ? `<i>${r.sharesAsOf} 기준</i>` : ''}</span><span class="v">${fmt.int(r.shares)}</span></div>
       <div class="csep"></div>
@@ -444,12 +472,235 @@ function renderCards(rows) {
       <div class="crow hl"><span class="k">현재 주가</span><span class="v">${r.priceStr} ${fmt.deltaHtml(r.changePct)}</span></div>
       <div class="cspacer"></div>
       <div class="crow pcoin">
-        <span class="k"><b>P/Coin</b><i>${discStr || (r.legacy ? '코인 비중 낮음 — 참고용' : '')}</i></span>
+        <span class="k"><b>P/Coin</b><i>${discStr}</i></span>
         <span class="v">${fmt.mnav(r.mnav)}</span>
       </div>
     </div>`;
   }).join('');
 }
+
+function renderKrTable(rows) {
+  const kr = rows.filter(r => r.market === 'KR')
+    .sort((a, b) => (a.legacy ? 1 : 0) - (b.legacy ? 1 : 0) || (b.coinValue ?? 0) - (a.coinValue ?? 0));
+  const tr = r => {
+    const h = r.holdings[0];
+    const disc = r.mnav != null ? (r.mnav - 1) * 100 : null;
+    return `
+    <tr>
+      <td>${r.name}<span class="tick2">${r.tick2}</span>${r.halted ? '<span class="badge">거래정지</span>' : ''}${r.legacy ? '<span class="badge">단순보유</span>' : ''}</td>
+      <td>${fmt.coins(h.coins, h.asset)}</td>
+      <td>${h.asOf}</td>
+      <td>${fmt.krwBig(r.coinValue)}</td>
+      <td>${fmt.krwBig(r.mcap)}</td>
+      <td class="${r.legacy ? 'muted' : ''}" style="font-weight:700">${fmt.mnav(r.mnav)}</td>
+      <td class="${r.legacy ? 'muted' : ''}">${r.legacy || disc == null ? '—' : (disc >= 0 ? '+' : '') + disc.toFixed(1) + '%'}</td>
+      <td>${r.priceStr} ${fmt.deltaHtml(r.changePct)}</td>
+    </tr>`;
+  };
+  $('#krt').innerHTML = `
+    <tr><th>기업</th><th>보유</th><th>기준일</th><th>코인가치</th><th>시가총액</th><th>P/Coin</th><th>괴리율</th><th>주가</th></tr>
+    ${kr.map(tr).join('')}`;
+}
+
+/* ================= P/Coin 복기 — 히스토리 차트 ================= */
+const dayToStr = d => new Date(d * 86400000).toISOString().slice(0, 10);
+const strToDay = s => Math.floor(Date.parse(s) / 86400000);
+
+// step-function lookup: series [[dateStr, value], ...] → value as of epoch day
+function stepAt(steps, day) {
+  let v = null;
+  for (const [ds, val] of steps) {
+    if (strToDay(ds) <= day) v = val; else break;
+  }
+  return v;
+}
+
+function fmtAxis(v, kind) {
+  if (v == null || !isFinite(v)) return '—';
+  if (kind === 'usd') return v >= 1000 ? '$' + Math.round(v / 1000) + 'k' : '$' + Math.round(v);
+  if (kind === 'usdFull') return '$' + Math.round(v).toLocaleString('en-US');
+  if (kind === 'shares') return (v / 1e6).toFixed(0) + 'M';
+  if (kind === 'x') return v.toFixed(1);
+  return v >= 1000 ? Math.round(v).toLocaleString('en-US') : String(Math.round(v * 100) / 100);
+}
+function fmtTip(v, kind) {
+  if (v == null || !isFinite(v)) return '—';
+  if (kind === 'usd' || kind === 'usdFull') return '$' + Math.round(v).toLocaleString('en-US');
+  if (kind === 'shares') return Math.round(v).toLocaleString('en-US');
+  if (kind === 'x') return v.toFixed(2) + '×';
+  return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+// generic multi-series line/area chart with optional right axis + crosshair tooltip
+function drawSeriesChart(container, cfg) {
+  const { series, refLineL } = cfg; // series: [{name, axis, type, color, kind, days, vals}]
+  const W = Math.max(container.clientWidth, 320), H = 240;
+  const padL = 46, padR = series.some(s => s.axis === 'R') ? 52 : 14, padT = 8, padB = 20;
+
+  const days = series[0].days; // all series share the master day axis
+  const n = days.length;
+  if (!n) { container.innerHTML = '<div class="desc">데이터 없음</div>'; return; }
+  const x = i => padL + (W - padL - padR) * (i / (n - 1));
+
+  const dom = axis => {
+    const vs = series.filter(s => s.axis === axis).flatMap(s => s.vals).filter(v => v != null && isFinite(v));
+    if (!vs.length) return null;
+    let lo = Math.min(...vs), hi = Math.max(...vs);
+    if (axis === 'L' && refLineL != null) { lo = Math.min(lo, refLineL); hi = Math.max(hi, refLineL); }
+    lo = Math.min(lo, lo > 0 && lo < hi * 0.35 ? 0 : lo); // near-zero domains start at 0
+    const pad = (hi - lo) * 0.06 || hi * 0.06;
+    return { lo: Math.max(0, lo - (lo === 0 ? 0 : pad)), hi: hi + pad };
+  };
+  const dL = dom('L'), dR = dom('R');
+  const yOf = (axis, v) => {
+    const d = axis === 'L' ? dL : dR;
+    return padT + (H - padT - padB) * (1 - (v - d.lo) / (d.hi - d.lo));
+  };
+
+  // gridlines from left axis (5 steps), right axis ticks only
+  let gl = '', ticksL = '', ticksR = '';
+  const kindL = (series.find(s => s.axis === 'L') || {}).kind;
+  const kindR = (series.find(s => s.axis === 'R') || {}).kind;
+  for (let i = 0; i <= 4; i++) {
+    const vy = padT + (H - padT - padB) * (i / 4);
+    gl += `<line class="gridline" x1="${padL}" y1="${vy}" x2="${W - padR}" y2="${vy}"></line>`;
+    if (dL) ticksL += `<text x="${padL - 5}" y="${vy + 3.5}" text-anchor="end">${fmtAxis(dL.hi - (dL.hi - dL.lo) * (i / 4), kindL)}</text>`;
+    if (dR) ticksR += `<text x="${W - padR + 5}" y="${vy + 3.5}">${fmtAxis(dR.hi - (dR.hi - dR.lo) * (i / 4), kindR)}</text>`;
+  }
+  let ref = '';
+  if (refLineL != null && dL) ref = `<line class="refline" x1="${padL}" y1="${yOf('L', refLineL)}" x2="${W - padR}" y2="${yOf('L', refLineL)}"></line>`;
+
+  // x ticks: years if span > 550d else months
+  let xticks = '';
+  const spanDays = days[n - 1] - days[0];
+  let last = '';
+  for (let i = 0; i < n; i++) {
+    const ds = dayToStr(days[i]);
+    const key = spanDays > 550 ? ds.slice(0, 4) : ds.slice(0, 7);
+    if (i > 0 && key !== last) {
+      xticks += `<text x="${x(i)}" y="${H - 5}" text-anchor="middle">${spanDays > 550 ? key : Number(key.slice(5)) + '월'}</text>`;
+    }
+    last = key;
+  }
+
+  const paths = series.map(s => {
+    let d = '', started = false, firstX = null, lastX = null;
+    for (let i = 0; i < n; i++) {
+      const v = s.vals[i];
+      if (v == null || !isFinite(v)) continue;
+      const px = x(i).toFixed(1), py = yOf(s.axis, v).toFixed(1);
+      d += (started ? 'L' : 'M') + px + ',' + py;
+      if (!started) firstX = px;
+      lastX = px; started = true;
+    }
+    if (!started) return '';
+    if (s.type === 'area') {
+      const y0 = yOf(s.axis, Math.max(0, (s.axis === 'L' ? dL : dR).lo)).toFixed(1);
+      return `<path d="${d}L${lastX},${y0}L${firstX},${y0}Z" fill="${s.color}" fill-opacity="0.12" stroke="none"></path>
+              <path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.5"></path>`;
+    }
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+  }).join('');
+
+  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}">${gl}${ref}${ticksL}${ticksR}${xticks}${paths}
+    <line class="xhair" y1="${padT}" y2="${H - padB}" visibility="hidden"></line></svg>`;
+
+  const svg = container.querySelector('svg');
+  const xhair = svg.querySelector('.xhair');
+  const tt = $('#tooltip');
+  svg.addEventListener('mousemove', e => {
+    const r = svg.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (W / r.width);
+    const i = Math.max(0, Math.min(n - 1, Math.round((mx - padL) / (W - padL - padR) * (n - 1))));
+    xhair.setAttribute('x1', x(i)); xhair.setAttribute('x2', x(i));
+    xhair.setAttribute('visibility', 'visible');
+    tt.innerHTML = `<div class="tt-name">${dayToStr(days[i])}</div>` +
+      series.map(s => `<div class="tt-row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color};margin-right:5px"></i>${s.name}</span><b>${fmtTip(s.vals[i], s.kind)}</b></div>`).join('');
+    tt.style.display = 'block';
+    const tx = Math.min(e.clientX + 14, window.innerWidth - tt.offsetWidth - 8);
+    const ty = Math.min(e.clientY + 14, window.innerHeight - tt.offsetHeight - 8);
+    tt.style.left = tx + 'px'; tt.style.top = ty + 'px';
+  });
+  svg.addEventListener('mouseleave', () => { xhair.setAttribute('visibility', 'hidden'); tt.style.display = 'none'; });
+}
+
+function renderHistoryTabs() {
+  const names = { MSTR: 'MSTR (BTC)', BMNR: 'BMNR (ETH)', SBET: 'SBET (ETH)' };
+  $('#htabs').innerHTML = Object.keys(names).map(k =>
+    `<button class="tab${state.tab === k ? ' active' : ''}" data-tab="${k}">${names[k]}</button>`).join('');
+  $('#htabs').querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+    state.tab = b.dataset.tab;
+    renderHistoryTabs();
+    renderHistoryCharts();
+  }));
+}
+
+function renderHistoryCharts() {
+  const h = state.history;
+  const T = typeof TREASURY !== 'undefined' ? TREASURY[state.tab] : null;
+  if (!h || !T) { $('#hgrid').innerHTML = '<div class="section-desc">과거 데이터 로딩 중…</div>'; return; }
+  const asset = T.asset;
+  const coinH = h[asset], stockH = h[state.tab];
+  const startDay = Math.max(strToDay(T.coins[0][0]), coinH.t[0]);
+
+  // master axis: coin history days from treasury start; forward-fill stock closes
+  const stockMap = new Map(stockH.t.map((d, i) => [d, stockH.c[i]]));
+  const days = [], coinPx = [], stockPx = [], coinsArr = [], sharesArr = [];
+  let lastStock = null;
+  for (let i = 0; i < coinH.t.length; i++) {
+    const d = coinH.t[i];
+    if (d < startDay) { if (stockMap.has(d)) lastStock = stockMap.get(d); continue; }
+    if (stockMap.has(d)) lastStock = stockMap.get(d);
+    days.push(d);
+    coinPx.push(coinH.c[i]);
+    stockPx.push(lastStock);
+    coinsArr.push(stepAt(T.coins, d));
+    sharesArr.push(stepAt(T.shares, d));
+  }
+  const perShare1m = days.map((_, i) => coinsArr[i] && sharesArr[i] ? coinsArr[i] / sharesArr[i] * 1e6 : null);
+  const mnavArr = days.map((_, i) => stockPx[i] && sharesArr[i] && coinsArr[i] && coinPx[i]
+    ? stockPx[i] * sharesArr[i] / (coinsArr[i] * coinPx[i]) : null);
+
+  const B = getComputedStyle(document.documentElement).getPropertyValue('--series-1').trim();
+  const G = getComputedStyle(document.documentElement).getPropertyValue('--series-2').trim();
+  const tk = state.tab;
+  const charts = [
+    { title: `${tk} 희석 시가총액 ÷ 보유 ${asset} 가치 (P/Coin)`, refLineL: 1,
+      series: [{ name: 'P/Coin', axis: 'L', type: 'line', color: B, kind: 'x', days, vals: mnavArr }] },
+    { title: `${tk} 주당 ${asset} 보유량 ×1m · ${asset} 가격`,
+      series: [
+        { name: `주당 ${asset} ×1m`, axis: 'L', type: 'area', color: G, kind: 'num', days, vals: perShare1m },
+        { name: `${asset} 가격`, axis: 'R', type: 'line', color: B, kind: 'usd', days, vals: coinPx }] },
+    { title: `${tk} 주당 ${asset} 보유량 ×1m · 완전희석주식수`,
+      series: [
+        { name: `주당 ${asset} ×1m`, axis: 'L', type: 'area', color: G, kind: 'num', days, vals: perShare1m },
+        { name: '완전희석주식수', axis: 'R', type: 'line', color: B, kind: 'shares', days, vals: sharesArr }] },
+    { title: `${tk} 주가 · ${asset} 가격`,
+      series: [
+        { name: `${tk} 주가`, axis: 'L', type: 'line', color: G, kind: 'usdFull', days, vals: stockPx },
+        { name: `${asset} 가격`, axis: 'R', type: 'line', color: B, kind: 'usd', days, vals: coinPx }] },
+  ];
+
+  $('#hgrid').innerHTML = charts.map((c, i) => `
+    <div class="hcard">
+      <h3>${c.title}</h3>
+      <div class="hlegend">${c.series.map(s => `<span class="lg"><i style="background:${s.color}"></i>${s.name}${s.axis === 'R' ? ' (우)' : c.series.length > 1 ? ' (좌)' : ''}</span>`).join('')}</div>
+      <div class="hchart" id="hc${i}"></div>
+    </div>`).join('');
+  charts.forEach((c, i) => drawSeriesChart($('#hc' + i), c));
+}
+
+async function loadHistory() {
+  try {
+    state.history = await getJson(IS_STATIC ? 'history.json?_=' + Math.floor(Date.now() / 3600000) : '/history.json');
+    renderHistoryCharts();
+  } catch (e) {
+    $('#hgrid').innerHTML = '<div class="section-desc">과거 시세 로딩 실패 — 새로고침 해보세요.</div>';
+  }
+}
+
+let resizeTimer = null;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderHistoryCharts, 200); });
 
 function renderUpdated(errs) {
   const t = state.lastOk ? state.lastOk.toLocaleTimeString('ko-KR', { hour12: false }) : '—';
@@ -474,12 +725,15 @@ async function tick() {
   renderTiles();
   renderChart(rows);
   renderCards(rows);
+  renderKrTable(rows);
   renderUpdated(errs);
   document.body.classList.remove('loading');
 }
 
 tick();
 setInterval(tick, REFRESH_MS);
+renderHistoryTabs();
+loadHistory();
 </script>
 </body>
 </html>

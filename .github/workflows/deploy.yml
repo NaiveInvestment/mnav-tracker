@@ -29,10 +29,12 @@ jobs:
           node-version: 20
       - name: Fetch stock quotes and FX
         run: node scripts/fetch-quotes.js
+      - name: Fetch price history
+        run: node scripts/fetch-history.js
       - name: Stage site
         run: |
           mkdir -p _site
-          cp index.html quotes.json _site/
+          cp index.html quotes.json history.json treasury-history.js _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

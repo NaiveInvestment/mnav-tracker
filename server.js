@@ -43,6 +43,16 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/api/fx') {
       return send(200, JSON.stringify(await fxQuote()));
     }
+    if (url.pathname === '/history.json') {
+      // regenerate at most once a day
+      const file = path.join(ROOT, 'history.json');
+      const fresh = fs.existsSync(file) && Date.now() - fs.statSync(file).mtimeMs < 86400e3;
+      if (!fresh) {
+        const { buildHistory } = require('./scripts/fetch-history');
+        fs.writeFileSync(file, JSON.stringify(await buildHistory()));
+      }
+      return send(200, fs.readFileSync(file));
+    }
     // static files
     let file = url.pathname === '/' ? '/index.html' : url.pathname;
     file = path.normalize(file).replace(/^([/\\])+/, '');
