@@ -278,7 +278,25 @@ const REFRESH_MS = 15000;
 /* ======================================================================== */
 
 const $ = (s, el) => (el || document).querySelector(s);
-const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false, history: null, tab: 'MSTR', failCounts: {} };
+const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false, history: null, tab: 'MSTR', failCounts: {}, cachedAt: null };
+
+// 마지막 정상 시세를 복원 — 첫 요청이 실패해도 빈칸("—") 대신 직전 값을 보여줌
+try {
+  const c = JSON.parse(localStorage.getItem('mnav-cache') || 'null');
+  if (c && c.crypto) {
+    state.crypto = c.crypto; state.fx = c.fx; state.us = c.us || {}; state.kr = c.kr || {};
+    state.quotesAsOf = c.quotesAsOf; state.cachedAt = c.savedAt;
+  }
+} catch (e) { /* 캐시 손상 시 무시 */ }
+
+function saveCache() {
+  try {
+    localStorage.setItem('mnav-cache', JSON.stringify({
+      crypto: state.crypto, fx: state.fx, us: state.us, kr: state.kr,
+      quotesAsOf: state.quotesAsOf, savedAt: Date.now(),
+    }));
+  } catch (e) { /* 저장 불가 환경 무시 */ }
+}
 // GitHub Pages 등 정적 호스팅에선 프록시(/api)가 없으므로 Actions가 만든 quotes.json 사용
 const IS_STATIC = !/^(localhost|127\.)/.test(location.hostname) || location.search.includes('static');
 
@@ -362,7 +380,7 @@ async function fetchAll() {
   // 2회 연속(30초+) 실패한 소스만 사용자에게 표시 — 단발성 오류는 이전 값으로 조용히 유지
   const errs = tasks.map(t => t[0]).filter(l => (state.failCounts[l] || 0) >= 2);
   state.failing = errs.length > 0;
-  if (anyOk) state.lastOk = new Date();
+  if (anyOk) { state.lastOk = new Date(); saveCache(); }
   return errs;
 }
 
@@ -728,7 +746,9 @@ let resizeTimer = null;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderHistoryCharts, 200); });
 
 function renderUpdated(errs) {
-  const t = state.lastOk ? state.lastOk.toLocaleTimeString('ko-KR', { hour12: false }) : '—';
+  const t = state.lastOk ? state.lastOk.toLocaleTimeString('ko-KR', { hour12: false })
+    : state.cachedAt ? new Date(state.cachedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' 저장값'
+    : '—';
   let staticNote = '';
   if (IS_STATIC && state.quotesAsOf) {
     const q = new Date(state.quotesAsOf).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -755,6 +775,11 @@ async function tick() {
   document.body.classList.remove('loading');
 }
 
+// 캐시가 있으면 네트워크 응답을 기다리지 않고 즉시 그림
+if (state.cachedAt) {
+  const rows = buildRows();
+  renderTiles(); renderChart(rows); renderCards(rows); renderKrTable(rows); renderUpdated([]);
+}
 tick();
 setInterval(tick, REFRESH_MS);
 renderHistoryTabs();
