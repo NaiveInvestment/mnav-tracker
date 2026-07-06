@@ -167,8 +167,7 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
   padding: 5px 14px; cursor: pointer;
 }
 .tab.active { color: var(--surface); background: var(--series-1); border-color: var(--series-1); }
-.hgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; margin-bottom: 20px; }
-@media (max-width: 500px) { .hgrid { grid-template-columns: 1fr; } }
+.hgrid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 20px; }
 .hcard { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
 .hcard h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 8px; }
 .hlegend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-2); margin-bottom: 6px; }
@@ -534,7 +533,7 @@ function fmtTip(v, kind) {
 // generic multi-series line/area chart with optional right axis + crosshair tooltip
 function drawSeriesChart(container, cfg) {
   const { series, refLineL } = cfg; // series: [{name, axis, type, color, kind, days, vals}]
-  const W = Math.max(container.clientWidth, 320), H = 240;
+  const W = Math.max(container.clientWidth, 320), H = 300;
   const padL = 46, padR = series.some(s => s.axis === 'R') ? 52 : 14, padT = 8, padB = 20;
 
   const days = series[0].days; // all series share the master day axis
@@ -570,15 +569,19 @@ function drawSeriesChart(container, cfg) {
   let ref = '';
   if (refLineL != null && dL) ref = `<line class="refline" x1="${padL}" y1="${yOf('L', refLineL)}" x2="${W - padR}" y2="${yOf('L', refLineL)}"></line>`;
 
-  // x ticks: years if span > 550d else months
+  // x ticks: years if span > 550d else months; vertical gridline per tick + start label
   let xticks = '';
   const spanDays = days[n - 1] - days[0];
+  const yearly = spanDays > 550;
+  const startLbl = dayToStr(days[0]).slice(0, 7);
+  xticks += `<text x="${x(0)}" y="${H - 5}" text-anchor="start">${yearly ? startLbl : Number(startLbl.slice(5)) + '월'}</text>`;
   let last = '';
   for (let i = 0; i < n; i++) {
     const ds = dayToStr(days[i]);
-    const key = spanDays > 550 ? ds.slice(0, 4) : ds.slice(0, 7);
-    if (i > 0 && key !== last) {
-      xticks += `<text x="${x(i)}" y="${H - 5}" text-anchor="middle">${spanDays > 550 ? key : Number(key.slice(5)) + '월'}</text>`;
+    const key = yearly ? ds.slice(0, 4) : ds.slice(0, 7);
+    if (i > 0 && key !== last && days[i] - days[0] > (yearly ? 90 : 12)) { // skip ticks crowding the start label
+      xticks += `<line class="gridline" x1="${x(i)}" y1="${padT}" x2="${x(i)}" y2="${H - padB}"></line>
+                 <text x="${x(i)}" y="${H - 5}" text-anchor="middle">${yearly ? key : Number(key.slice(5)) + '월'}</text>`;
     }
     last = key;
   }
