@@ -63,6 +63,7 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
 }
 .tile .label { font-size: 12px; color: var(--ink-2); }
 .tile .value { font-size: 22px; font-weight: 600; margin-top: 2px; }
+.tile .value2 { font-size: 16px; font-weight: 600; color: var(--ink-2); margin-top: 1px; }
 .tile .sub { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
 .delta { font-size: 12px; font-weight: 500; }
 .delta.up { color: var(--up); }
@@ -348,8 +349,8 @@ function renderTiles() {
   let kimchi = null;
   if (btcK && btcU && fx?.usdkrw) kimchi = (btcK.price / (btcU.price * fx.usdkrw) - 1) * 100;
   const tiles = [
-    { label: '비트코인 (업비트)', value: fmt.krw(btcK?.price), delta: fmt.deltaHtml(btcK?.changePct), sub: btcU ? fmt.usd(btcU.price, 0) + ' (바이낸스)' : '' },
-    { label: '이더리움 (업비트)', value: fmt.krw(ethK?.price), delta: fmt.deltaHtml(ethK?.changePct), sub: ethU ? fmt.usd(ethU.price, 0) + ' (바이낸스)' : '' },
+    { label: '비트코인', value: fmt.krw(btcK?.price), value2: btcU ? fmt.usd(btcU.price, 0) : '', delta: fmt.deltaHtml(btcK?.changePct), sub: '업비트 · 바이낸스' },
+    { label: '이더리움', value: fmt.krw(ethK?.price), value2: ethU ? fmt.usd(ethU.price, 0) : '', delta: fmt.deltaHtml(ethK?.changePct), sub: '업비트 · 바이낸스' },
     { label: 'USD/KRW', value: fx ? fx.usdkrw.toLocaleString('ko-KR', { minimumFractionDigits: 2 }) : '—', delta: fmt.deltaHtml(fx?.changePct), sub: '하나은행 고시' },
     { label: '김치 프리미엄 (BTC)', value: kimchi == null ? '—' : (kimchi > 0 ? '+' : '') + kimchi.toFixed(1) + '%', delta: '', sub: '업비트 ÷ (바이낸스 × 환율)' },
   ];
@@ -357,6 +358,7 @@ function renderTiles() {
     <div class="tile">
       <div class="label">${t.label}</div>
       <div class="value">${t.value}</div>
+      ${t.value2 ? `<div class="value2">${t.value2}</div>` : ''}
       <div class="sub">${t.delta}${t.delta && t.sub ? ' · ' : ''}${t.sub}</div>
     </div>`).join('');
 }
