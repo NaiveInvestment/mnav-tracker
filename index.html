@@ -278,7 +278,7 @@ const REFRESH_MS = 15000;
 /* ======================================================================== */
 
 const $ = (s, el) => (el || document).querySelector(s);
-const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false, history: null, tab: 'MSTR' };
+const state = { crypto: {}, fx: null, us: {}, kr: {}, quotesAsOf: null, lastOk: null, failing: false, history: null, tab: 'MSTR', failCounts: {} };
 // GitHub Pages 등 정적 호스팅에선 프록시(/api)가 없으므로 Actions가 만든 quotes.json 사용
 const IS_STATIC = !/^(localhost|127\.)/.test(location.hostname) || location.search.includes('static');
 
@@ -310,10 +310,21 @@ const fmt = {
   },
 };
 
-async function getJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(url + ' → ' + res.status);
-  return res.json();
+// 8초 타임아웃 + 1회 자동 재시도 — 일시적 네트워크 오류를 흡수
+async function getJson(url, retries = 1) {
+  for (let a = 0; ; a++) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!res.ok) throw new Error(url + ' → ' + res.status);
+      return await res.json();
+    } catch (e) {
+      if (a >= retries) throw e;
+      await new Promise(r => setTimeout(r, 600));
+    }
+  }
 }
 
 async function fetchAll() {
@@ -323,9 +334,13 @@ async function fetchAll() {
     ['업비트', getJson('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH').then(v => {
       for (const t of v) state.crypto[t.market.replace('KRW-', '') + '_KRW'] = { price: t.trade_price, changePct: t.signed_change_rate * 100 };
     })],
-    ['바이낸스', getJson('https://api.binance.com/api/v3/ticker/price?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22%5D').then(v => {
+    ['바이낸스', (async () => {
+      const path = '/api/v3/ticker/price?symbols=%5B%22BTCUSDT%22,%22ETHUSDT%22%5D';
+      let v;
+      try { v = await getJson('https://api.binance.com' + path, 0); }
+      catch (e) { v = await getJson('https://data-api.binance.vision' + path); } // 공식 미러로 폴백
       for (const t of v) state.crypto[t.symbol.replace('USDT', '') + '_USD'] = { price: Number(t.price) };
-    })],
+    })()],
   ];
   if (IS_STATIC) {
     // 5분 단위 캐시버스터 — Pages CDN 캐시와 Actions 갱신 주기에 맞춤
@@ -338,10 +353,16 @@ async function fetchAll() {
     tasks.push(['국내주식', getJson('/api/kr?codes=' + krCodes).then(v => { state.kr = v; })]);
   }
   const results = await Promise.allSettled(tasks.map(t => t[1]));
-  const errs = [];
-  results.forEach((r, i) => { if (r.status === 'rejected') errs.push(tasks[i][0]); });
+  let anyOk = false;
+  results.forEach((r, i) => {
+    const label = tasks[i][0];
+    if (r.status === 'rejected') state.failCounts[label] = (state.failCounts[label] || 0) + 1;
+    else { state.failCounts[label] = 0; anyOk = true; }
+  });
+  // 2회 연속(30초+) 실패한 소스만 사용자에게 표시 — 단발성 오류는 이전 값으로 조용히 유지
+  const errs = tasks.map(t => t[0]).filter(l => (state.failCounts[l] || 0) >= 2);
   state.failing = errs.length > 0;
-  if (errs.length < tasks.length) state.lastOk = new Date();
+  if (anyOk) state.lastOk = new Date();
   return errs;
 }
 
@@ -717,7 +738,7 @@ function renderUpdated(errs) {
   const errEl = $('#err');
   if (errs && errs.length) {
     errEl.style.display = 'block';
-    errEl.textContent = '시세 불러오기 실패: ' + errs.join(', ') + ' — 이전 값 유지 중';
+    errEl.textContent = '시세 갱신 지연: ' + errs.join(', ') + ' — 마지막 정상 값으로 표시 중';
   } else errEl.style.display = 'none';
 }
 
