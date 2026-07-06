@@ -15,7 +15,6 @@
   --baseline:    #c3c2b7;
   --border:      rgba(11,11,11,0.10);
   --series-1:    #2a78d6;
-  --series-2:    #1baf7a;
   --up:          #d03b3b;   /* KR convention: red = up */
   --down:        #2a78d6;   /* blue = down */
   --neutral-bg:  #f0efec;
@@ -31,7 +30,6 @@
     --baseline:    #383835;
     --border:      rgba(255,255,255,0.10);
     --series-1:    #3987e5;
-    --series-2:    #199e70;
     --up:          #e66767;
     --down:        #3987e5;
     --neutral-bg:  #383835;
@@ -118,24 +116,6 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
 #tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; color: var(--ink-2); }
 #tooltip .tt-row b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* ---- price line chart ---- */
-.plegend { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 8px; font-size: 12.5px; color: var(--ink-2); }
-.plegend .lg { display: inline-flex; align-items: center; gap: 6px; }
-.plegend .lg i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.plegend .lg b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-#pchart { position: relative; }
-#pchart svg { display: block; width: 100%; height: auto; }
-#pchart text { font-family: inherit; font-size: 11px; fill: var(--ink-muted); }
-#pchart .endlbl { font-size: 12px; font-weight: 600; fill: var(--ink); }
-#pchart .grid { stroke: var(--grid); stroke-width: 1; }
-#pchart .xhair { stroke: var(--baseline); stroke-width: 1; }
-details.ptable { margin-top: 10px; font-size: 12px; color: var(--ink-2); }
-details.ptable summary { cursor: pointer; color: var(--ink-muted); }
-details.ptable table { margin-top: 8px; width: auto; border-collapse: collapse; }
-details.ptable th, details.ptable td { padding: 3px 14px 3px 0; text-align: right; font-variant-numeric: tabular-nums; border: none; font-size: 12px; }
-details.ptable th { color: var(--ink-muted); font-weight: 500; }
-details.ptable td:first-child, details.ptable th:first-child { text-align: left; }
-
 /* ---- company cards ---- */
 .section-title { font-size: 15px; font-weight: 600; margin: 0 2px 2px; }
 .section-desc { font-size: 12px; color: var(--ink-2); margin: 0 2px 12px; }
@@ -199,23 +179,15 @@ footer b { color: var(--ink-2); font-weight: 600; }
 
   <div class="tiles" id="tiles"></div>
 
+  <div class="section-title">기업별 상세</div>
+  <div class="section-desc">주당 코인 가치 = 보유 코인 가치 ÷ 주식수 · P/Coin = 현재 주가 ÷ 주당 코인 가치. 각사 상장 통화 기준(미국 $, 국내 ₩).</div>
+  <div class="ccards" id="ccards"></div>
+
   <div class="card">
     <h2>P/Coin (mNAV) — 시가총액 ÷ 보유 크립토 가치</h2>
     <div class="desc">1.0× 미만이면 시총이 보유 코인 가치보다 싸다는 뜻 (디스카운트). 단순보유 기업(위메이드·네오위즈)은 코인 비중이 작아 제외.</div>
     <div class="chart" id="chart"></div>
   </div>
-
-  <div class="card">
-    <h2>비트코인 · 이더리움 — 최근 90일</h2>
-    <div class="desc">업비트 일봉 종가, 시작점=100 지수화 (절대가격 축이 달라 상대 성과로 비교). 마지막 점은 오늘 실시간 가격.</div>
-    <div class="plegend" id="plegend"></div>
-    <div id="pchart"></div>
-    <details class="ptable"><summary>표로 보기 (주 단위)</summary><div id="ptable"></div></details>
-  </div>
-
-  <div class="section-title">기업별 상세</div>
-  <div class="section-desc">주당 코인 가치 = 보유 코인 가치 ÷ 주식수 · P/Coin = 현재 주가 ÷ 주당 코인 가치. 각사 상장 통화 기준(미국 $, 국내 ₩).</div>
-  <div class="ccards" id="ccards"></div>
 
   <footer>
     <b>참고</b><br>
@@ -477,106 +449,6 @@ function renderCards(rows) {
   }).join('');
 }
 
-/* ---- BTC/ETH 90-day indexed line chart (Upbit daily candles, CORS OK everywhere) ---- */
-async function loadCandles() {
-  try {
-    const [btc, eth] = await Promise.all([
-      getJson('https://api.upbit.com/v1/candles/days?market=KRW-BTC&count=91'),
-      getJson('https://api.upbit.com/v1/candles/days?market=KRW-ETH&count=91'),
-    ]);
-    state.candles = { btc: btc.reverse(), eth: eth.reverse() }; // oldest first
-    renderPriceChart();
-  } catch (e) { /* 코인 시세 타일이 살아있으므로 조용히 유지 */ }
-}
-
-function renderPriceChart() {
-  const c = state.candles;
-  const el = $('#pchart');
-  if (!c || !el) return;
-  const n = Math.min(c.btc.length, c.eth.length);
-  const btc = c.btc.slice(-n), eth = c.eth.slice(-n);
-  const idx = (arr) => arr.map(k => k.trade_price / arr[0].trade_price * 100);
-  const sb = idx(btc), se = idx(eth);
-  const dates = btc.map(k => k.candle_date_time_kst.slice(0, 10));
-
-  const W = Math.max(el.clientWidth, 320), H = 250;
-  const padL = 34, padR = 56, padT = 12, padB = 24;
-  const all = sb.concat(se);
-  const span = Math.max(...all) - Math.min(...all);
-  const step = span > 60 ? 20 : span > 30 ? 10 : 5;
-  const lo = Math.floor(Math.min(...all) / step) * step;
-  const hi = Math.ceil(Math.max(...all) / step) * step;
-  const x = i => padL + (W - padL - padR) * (i / (n - 1));
-  const y = v => padT + (H - padT - padB) * (1 - (v - lo) / (hi - lo));
-
-  let grid = '';
-  for (let v = lo; v <= hi; v += step) {
-    grid += `<line class="grid" x1="${padL}" y1="${y(v)}" x2="${W - padR}" y2="${y(v)}"></line>
-             <text x="${padL - 6}" y="${y(v) + 3.5}" text-anchor="end">${v}</text>`;
-  }
-  let xlabels = '';
-  for (let i = 1; i < n; i++) {
-    if (dates[i].slice(0, 7) !== dates[i - 1].slice(0, 7)) { // month change
-      const [, m, d] = dates[i].split('-');
-      xlabels += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${Number(m)}/${Number(d)}</text>`;
-    }
-  }
-  const pathOf = s => s.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
-  // end labels — nudge apart if the lines converge at the right edge
-  let yB = y(sb[n - 1]), yE = y(se[n - 1]);
-  if (Math.abs(yB - yE) < 14) { const mid = (yB + yE) / 2, s = yB <= yE ? 1 : -1; yB = mid - 7 * s; yE = mid + 7 * s; }
-
-  el.innerHTML = `
-  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="비트코인 이더리움 90일 지수화 추이">
-    ${grid}${xlabels}
-    <path d="${pathOf(sb)}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
-    <path d="${pathOf(se)}" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
-    <line class="xhair" id="xhair" y1="${padT}" y2="${H - padB}" visibility="hidden"></line>
-    <circle cx="${x(n - 1)}" cy="${y(sb[n - 1])}" r="4" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2"></circle>
-    <circle cx="${x(n - 1)}" cy="${y(se[n - 1])}" r="4" fill="var(--series-2)" stroke="var(--surface)" stroke-width="2"></circle>
-    <text class="endlbl" x="${x(n - 1) + 8}" y="${yB + 4}">BTC</text>
-    <text class="endlbl" x="${x(n - 1) + 8}" y="${yE + 4}">ETH</text>
-  </svg>`;
-
-  const chg = s => (s[s.length - 1] - 100);
-  const sign = v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-  $('#plegend').innerHTML = `
-    <span class="lg"><i style="background:var(--series-1)"></i>비트코인 <b>${sign(chg(sb))}</b></span>
-    <span class="lg"><i style="background:var(--series-2)"></i>이더리움 <b>${sign(chg(se))}</b></span>
-    <span class="lg" style="color:var(--ink-muted)">${dates[0]} ~ ${dates[n - 1]}</span>`;
-
-  // weekly table twin (values reachable without hover)
-  let tbl = '<table><tr><th>날짜</th><th>BTC 종가</th><th>ETH 종가</th><th>BTC 지수</th><th>ETH 지수</th></tr>';
-  for (let i = n - 1; i >= 0; i -= 7) {
-    tbl += `<tr><td>${dates[i]}</td><td>${fmt.krw(btc[i].trade_price)}</td><td>${fmt.krw(eth[i].trade_price)}</td><td>${sb[i].toFixed(1)}</td><td>${se[i].toFixed(1)}</td></tr>`;
-  }
-  $('#ptable').innerHTML = tbl + '</table>';
-
-  // crosshair + tooltip
-  const svg = el.querySelector('svg');
-  const xhair = el.querySelector('#xhair');
-  const tt = $('#tooltip');
-  svg.addEventListener('mousemove', e => {
-    const r = svg.getBoundingClientRect();
-    const mx = (e.clientX - r.left) * (W / r.width);
-    const i = Math.max(0, Math.min(n - 1, Math.round((mx - padL) / (W - padL - padR) * (n - 1))));
-    xhair.setAttribute('x1', x(i)); xhair.setAttribute('x2', x(i));
-    xhair.setAttribute('visibility', 'visible');
-    tt.innerHTML = `
-      <div class="tt-name">${dates[i]}</div>
-      <div class="tt-row"><span>BTC</span><b>${fmt.krw(btc[i].trade_price)} · ${sb[i].toFixed(1)}</b></div>
-      <div class="tt-row"><span>ETH</span><b>${fmt.krw(eth[i].trade_price)} · ${se[i].toFixed(1)}</b></div>`;
-    tt.style.display = 'block';
-    const tx = Math.min(e.clientX + 14, window.innerWidth - tt.offsetWidth - 8);
-    const ty = Math.min(e.clientY + 14, window.innerHeight - tt.offsetHeight - 8);
-    tt.style.left = tx + 'px'; tt.style.top = ty + 'px';
-  });
-  svg.addEventListener('mouseleave', () => { xhair.setAttribute('visibility', 'hidden'); tt.style.display = 'none'; });
-}
-
-let resizeTimer = null;
-window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderPriceChart, 200); });
-
 function renderUpdated(errs) {
   const t = state.lastOk ? state.lastOk.toLocaleTimeString('ko-KR', { hour12: false }) : '—';
   let staticNote = '';
@@ -606,8 +478,6 @@ async function tick() {
 
 tick();
 setInterval(tick, REFRESH_MS);
-loadCandles();
-setInterval(loadCandles, 600000); // 일봉은 10분마다 갱신이면 충분
 </script>
 </body>
 </html>
