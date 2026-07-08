@@ -753,13 +753,13 @@ let resizeTimer = null;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderHistoryCharts, 200); });
 
 function renderUpdated(errs) {
-  const t = state.lastOk ? state.lastOk.toLocaleTimeString('ko-KR', { hour12: false })
-    : state.cachedAt ? new Date(state.cachedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' 저장값'
+  const clock = d => d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const t = state.lastOk ? clock(state.lastOk)
+    : state.cachedAt ? clock(new Date(state.cachedAt)) + ' 저장값'
     : '—';
   let staticNote = '';
   if (IS_STATIC && state.quotesAsOf) {
-    const q = new Date(state.quotesAsOf).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-    staticNote = ` · 주가·환율 ${q} 기준(~10분 지연)`;
+    staticNote = ` · 주가·환율 ${clock(new Date(state.quotesAsOf))} 기준(수시간 지연 가능)`;
   }
   // 갱신 지연은 조용히: 헤더 우측에 회색 소문구로만 (마지막 정상 값이 계속 표시되므로)
   const delay = errs && errs.length ? ` · <span title="${errs.join(', ')} 갱신 지연 — 마지막 정상 값 표시 중">일부 지연</span>` : '';

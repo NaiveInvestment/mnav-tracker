@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '*/10 * * * *'   # 주가·환율 갱신 (실제 실행 간격은 10~20분으로 지연될 수 있음)
+    - cron: '*/10 * * * *'   # 주가·환율 갱신 (GitHub 무료 스케줄러가 실제론 1~3시간 간격으로 지연 실행함)
   workflow_dispatch:
 
 permissions:
