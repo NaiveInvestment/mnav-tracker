@@ -25,6 +25,7 @@ async function usQuoteToss(symbol) {
     symbol,
     price: r.close,
     prevClose: r.base,
+    marketCap: r.marketCap ?? null,
     currency: r.currency,
     time: Math.floor(Date.parse(r.tradeDateTime) / 1000),
     src: 'toss',
