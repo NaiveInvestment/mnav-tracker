@@ -29,6 +29,13 @@ function isoDate(englishDate) {
   return d.toISOString().slice(0, 10);
 }
 
+function usdAmount(match) {
+  if (!match) return null;
+  const value = Number(match[1].replace(/,/g, ''));
+  const scale = match[2].toLowerCase() === 'billion' ? 1e9 : 1e6;
+  return Number.isFinite(value) ? value * scale : null;
+}
+
 async function main() {
   const list = await fetchText(LIST_URL);
   const link = list.match(/href="(\/news-releases\/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-[^"]+\.html)"/i)?.[1];
@@ -43,6 +50,7 @@ async function main() {
   const eth = Number(holdings[2].replace(/,/g, ''));
   const btc = Number(holdings[3].replace(/,/g, ''));
   const supplyMillions = Number(text.match(/ETH supply\s*\(of\s*([\d.]+)\s*million ETH\s*\)/i)?.[1]);
+  const cash = usdAmount(text.match(/total cash(?:\s*(?:&|and)\s*marketable securities)?(?:\s+of)?\s*\$([\d,.]+)\s*(million|billion)/i));
   if (!Number.isSafeInteger(eth) || !Number.isSafeInteger(btc) || eth < 1000000) {
     throw new Error(`invalid BitMine holdings: ETH=${eth} BTC=${btc}`);
   }
@@ -51,6 +59,7 @@ async function main() {
     BMNR: {
       holdings: [{ asset: 'ETH', coins: eth, asOf }, { asset: 'BTC', coins: btc, asOf }],
       ethSupply: Number.isFinite(supplyMillions) ? Math.round(supplyMillions * 1000000) : null,
+      capital: { cash, cashAsOf: cash != null ? asOf : null },
       source,
       fetchedAt: new Date().toISOString(),
     },
@@ -58,7 +67,7 @@ async function main() {
   const js = `(() => {\n  const latest = ${JSON.stringify(payload)};\n  globalThis.LATEST_TREASURY = latest;\n  if (typeof TREASURY !== 'undefined' && TREASURY.BMNR) {\n    const entry = [latest.BMNR.holdings[0].asOf, latest.BMNR.holdings[0].coins];\n    const history = TREASURY.BMNR.coins;\n    const existing = history.find(x => x[0] === entry[0]);\n    if (existing) existing[1] = entry[1];\n    else if (!history.length || history[history.length - 1][0] < entry[0]) history.push(entry);\n  }\n})();\n`;
   const file = path.join(__dirname, '..', 'treasury-latest.js');
   fs.writeFileSync(file, js);
-  console.log(`treasury-latest.js written: BMNR=${eth} ETH, ${btc} BTC as of ${asOf}`);
+  console.log(`treasury-latest.js written: BMNR=${eth} ETH, ${btc} BTC, cash=${cash} as of ${asOf}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
