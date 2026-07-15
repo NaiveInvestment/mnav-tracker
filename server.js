@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { usQuote, krQuote, fxQuote } = require('./quotes-lib');
 
-const PORT = 8787;
+const PORT = Number(process.env.PORT) || 8787;
 const ROOT = __dirname;
 
 const MIME = {
