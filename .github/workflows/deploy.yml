@@ -31,7 +31,7 @@ jobs:
         run: node scripts/fetch-quotes.js
       - name: Fetch and validate treasury disclosures
         run: |
-          node --test scripts/fetch-treasury.test.js
+          node --test scripts/fetch-treasury.test.js scripts/index.test.js
           if curl -fsSL https://naiveinvestment.github.io/mnav-tracker/treasury-latest.js -o /tmp/treasury-latest.js; then
             cp /tmp/treasury-latest.js treasury-latest.js
           else
