@@ -230,10 +230,10 @@ footer a { color: var(--series-1); }
   <div class="hgrid" id="hgrid"></div>
 
   <details class="krsec">
-    <summary>국내 상장사 보유현황 (mNAV 미산출) — 비트맥스 · 비트플래닛 · 파라택시스 · 위메이드 · 네오위즈</summary>
+    <summary>국내 상장사 시총 mNAV — 비트맥스 · 비트플래닛 · 파라택시스 · 위메이드 · 네오위즈</summary>
     <div class="krbody">
       <table class="krt" id="krt"></table>
-      <div class="desc" style="margin:10px 2px 0">국내 보유코인은 업비트 시세로 평가 · 현금·이자부채·우선주를 동일 기준일로 맞추지 못해 mNAV는 산출하지 않음 · 파라택시스코리아는 거래정지(마지막 체결가) · 위메이드·네오위즈는 DAT가 아닌 단순 보유로 구분.</div>
+      <div class="desc" style="margin:10px 2px 0">국내 시총 mNAV = 현재 시가총액 ÷ 보유 코인 가치 · 현금·이자부채·우선주를 반영한 Enterprise mNAV와는 다른 단순 비교 배수 · 파라택시스코리아는 거래정지(마지막 체결가) · 위메이드·네오위즈는 DAT가 아닌 단순 보유로 구분.</div>
     </div>
   </details>
 
@@ -250,7 +250,7 @@ footer a { color: var(--series-1); }
     · 분기 확인: 비트맥스·비트플래닛·파라택시스코리아·위메이드·네오위즈홀딩스는 2026년 1분기 KIND 공시의 취득·처분 후 기말 수량. BMNR 기본주식수·우선주와 SBET 기본주식수·추정 현금은 별도 공시값.<br>
     · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,070만.<br>
     · 공식 원문: MSTR <a href="https://www.strategy.com/assets" target="_blank" rel="noreferrer">자산·자본구조</a>/<a href="https://www.strategy.com/shares" target="_blank" rel="noreferrer">주식수</a> · BMNR <a href="https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./" target="_blank" rel="noreferrer">회사 발표</a> · SBET <a href="https://www.sec.gov/edgar/browse/?CIK=1981535" target="_blank" rel="noreferrer">SEC 공시</a> · 파라택시스이더리움 <a href="https://www.newswire.co.kr/?md=A10&amp;act=article&amp;no=50194" target="_blank" rel="noreferrer">회사 뉴스룸</a>. 각 보유량 기준일을 누르면 해당 근거가 열림.<br>
-    · 국내 및 과거 차트는 동일 기준일의 현금·부채·우선주 시계열이 없어 mNAV를 표시하지 않음. 과거 주식수는 완전희석 근사치이며 현재 mNAV 계산에는 사용하지 않음.<br>
+    · 국내는 현재 시가총액 ÷ 보유 코인 가치인 ‘시총 mNAV’를 별도 표시. 동일 기준일의 현금·부채·우선주가 없어 미국사의 Enterprise mNAV 비교에는 섞지 않음. 과거 주식수는 완전희석 근사치이며 현재 mNAV 계산에는 사용하지 않음.<br>
     · 시세: 업비트·바이낸스(코인) · 토스증권(국내·미국 주가, 미국 주간거래 반영; 장애 시 야후·네이버 폴백) · 네이버(환율) · 야후(과거 일봉). 실시간 가격을 쓰므로 회사가 종가로 공시하는 mNAV와 장중 차이가 날 수 있음. 투자 판단의 근거가 아닌 참고용.
   </footer>
 </div>
@@ -477,6 +477,7 @@ function buildRows() {
     rows.push({
       key: c.code, name: c.name, tick2: c.code, market: 'KR', cur: 'KRW',
       holdings, coinValue: cv, mcap,
+      equityMnav: mcap != null && cv ? mcap / cv : null,
       source: c.source, updateMode: c.updateMode,
       stale: c.holdings.some(h => holdingIsStale(h.asOf, c.freshnessDays)),
       price, priceStr: fmt.krw(price),
@@ -591,6 +592,7 @@ function renderKrTable(rows) {
     .sort((a, b) => (a.legacy ? 1 : 0) - (b.legacy ? 1 : 0) || (b.coinValue ?? 0) - (a.coinValue ?? 0));
   const tr = r => {
     const h = r.holdings[0];
+    const disc = r.equityMnav != null ? (r.equityMnav - 1) * 100 : null;
     const sourceUrl = safeSourceUrl(r.source);
     const sourceDate = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noreferrer">${h.asOf}</a>` : h.asOf;
     const updateBadge = r.updateMode === 'auto' ? '<span class="badge auto">자동</span>' : '<span class="badge">분기공시</span>';
@@ -601,11 +603,13 @@ function renderKrTable(rows) {
       <td>${sourceDate}</td>
       <td>${fmt.krwBig(r.coinValue)}</td>
       <td>${fmt.krwBig(r.mcap)}</td>
+      <td style="font-weight:700">${fmt.mnav(r.equityMnav)}</td>
+      <td>${disc == null ? '—' : (disc >= 0 ? '+' : '') + disc.toFixed(1) + '%'}</td>
       <td>${r.priceStr} ${fmt.deltaHtml(r.changePct)}</td>
     </tr>`;
   };
   $('#krt').innerHTML = `
-    <tr><th>기업</th><th>보유</th><th>기준일</th><th>코인가치</th><th>시가총액</th><th>주가</th></tr>
+    <tr><th>기업</th><th>보유</th><th>기준일</th><th>코인가치</th><th>시가총액</th><th>시총 mNAV</th><th>NAV 대비</th><th>주가</th></tr>
     ${kr.map(tr).join('')}`;
 }
 
