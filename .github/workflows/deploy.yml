@@ -29,11 +29,16 @@ jobs:
           node-version: 20
       - name: Fetch stock quotes and FX
         run: node scripts/fetch-quotes.js
-      - name: Fetch latest BitMine treasury
+      - name: Fetch and validate treasury disclosures
         run: |
-          curl -fsSL https://naiveinvestment.github.io/mnav-tracker/treasury-latest.js -o /tmp/treasury-latest.js && cp /tmp/treasury-latest.js treasury-latest.js || true
+          node --test scripts/fetch-treasury.test.js
+          if curl -fsSL https://naiveinvestment.github.io/mnav-tracker/treasury-latest.js -o /tmp/treasury-latest.js; then
+            cp /tmp/treasury-latest.js treasury-latest.js
+          else
+            echo "::warning::Previous deployed treasury payload unavailable; using the verified repository fallback"
+          fi
           node scripts/fetch-treasury.js
-        continue-on-error: true
+          node scripts/validate-treasury.js
       - name: Fetch price history
         run: node scripts/fetch-history.js
       - name: Stage site

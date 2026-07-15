@@ -1,11 +1,24 @@
 (() => {
-  const latest = {"BMNR":{"holdings":[{"asset":"ETH","coins":5742237,"asOf":"2026-07-05"},{"asset":"BTC","coins":206,"asOf":"2026-07-05"}],"ethSupply":120700000,"capital":{"cash":527000000,"cashAsOf":"2026-07-05"},"source":"https://www.prnewswire.com/news-releases/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-5-74-million-tokens-and-total-crypto-and-total-cash-holdings-of-11-1-billion-302818093.html","fetchedAt":"2026-07-13T04:51:25.266Z"}};
+  /* TREASURY_PAYLOAD_START */
+  const latest = {"schemaVersion":2,"generatedAt":"2026-07-15T03:26:49.288Z","MSTR":{"shares":376424000,"sharesAsOf":"2026-07-12","assumedDilutedShares":406099000,"holdings":[{"asset":"BTC","coins":843775,"asOf":"2026-07-13"}],"capital":{"debt":6754000000,"preferred":15464458400,"cash":3000000000,"asOf":"2026-07-13"},"source":"https://www.strategy.com/assets","sharesSource":"https://www.strategy.com/shares","updateMode":"auto","verifiedAt":"2026-07-15","fetchedAt":"2026-07-15T03:26:49.288Z"},"BMNR":{"shares":569580000,"sharesAsOf":"2026-07-02","holdings":[{"asset":"ETH","coins":5770038,"asOf":"2026-07-12"},{"asset":"BTC","coins":206,"asOf":"2026-07-12"}],"ethSupply":120700000,"capital":{"debt":0,"preferred":350000000,"preferredAsOf":"2026-06-10","cash":482000000,"cashAsOf":"2026-07-12"},"source":"https://www.prnewswire.com/news-releases/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-5-77-million-tokens-and-total-crypto-and-total-cash-holdings-of-11-3-billion-302823523.html","updateMode":"auto-holdings-cash","verifiedAt":"2026-07-15","fetchedAt":"2026-07-15T03:26:49.017Z"},"SBET":{"shares":205091990,"sharesAsOf":"2026-06-26","holdings":[{"asset":"ETH","coins":886725,"asOf":"2026-06-28"}],"capital":{"debt":0,"preferred":0,"cash":64261895,"cashAsOf":"2026-06-28","estimated":true},"source":"https://www.sec.gov/Archives/edgar/data/1981535/000149315226031202/form8-k.htm","sharesSource":"https://www.sec.gov/Archives/edgar/data/1981535/000149315226029804/form8-k.htm","updateMode":"auto-holdings","verifiedAt":"2026-07-15","fetchedAt":"2026-07-15T03:26:49.255Z"},"KR":{"112040":{"holdings":[{"asset":"BTC","coins":215,"asOf":"2026-03-31"}],"source":"https://kind.krx.co.kr/external/2026/05/15/003103/20260515007084/11013.htm","updateMode":"quarterly","verifiedAt":"2026-07-15"},"288330":{"holdings":[{"asset":"BTC","coins":216.6092,"asOf":"2026-03-31"}],"source":"https://kind.krx.co.kr/external/2026/05/15/001508/20260515003302/11013.htm","updateMode":"quarterly","verifiedAt":"2026-07-15"},"290560":{"holdings":[{"asset":"ETH","coins":10449,"asOf":"2026-07-08"}],"source":"https://www.newswire.co.kr/newsRead.php?no=1038133","updateMode":"auto","verifiedAt":"2026-07-15","fetchedAt":"2026-07-15T03:26:48.994Z"},"377030":{"holdings":[{"asset":"BTC","coins":551.238,"asOf":"2026-03-31"}],"source":"https://kind.krx.co.kr/external/2026/05/15/001922/20260515004270/11013.htm","updateMode":"quarterly","verifiedAt":"2026-07-15"},"049470":{"holdings":[{"asset":"BTC","coins":299.999874,"asOf":"2026-03-31"}],"source":"https://kind.krx.co.kr/external/2026/05/15/003367/20260515007717/11013.htm","updateMode":"quarterly","verifiedAt":"2026-07-15"},"042420":{"holdings":[{"asset":"BTC","coins":78,"asOf":"2026-03-31"}],"source":"https://kind.krx.co.kr/external/2026/05/15/001987/20260515004398/11013.htm","updateMode":"quarterly","verifiedAt":"2026-07-15"}},"_history":{"MSTR":{"coins":[["2026-07-13",843775]],"shares":[["2026-07-12",406099000]]},"BMNR":{"coins":[["2026-07-12",5770038]],"shares":[]},"SBET":{"coins":[["2026-06-28",886725]],"shares":[["2026-06-26",205091990]]}},"_meta":{"sources":{"sharplink":{"status":"ok","attemptedAt":"2026-07-15T03:26:48.939Z","lastSuccessAt":"2026-07-15T03:26:48.939Z","source":"https://www.sec.gov/Archives/edgar/data/1981535/000149315226031202/form8-k.htm","error":null},"parataxis":{"status":"ok","attemptedAt":"2026-07-15T03:26:48.940Z","lastSuccessAt":"2026-07-15T03:26:48.940Z","source":"https://www.newswire.co.kr/newsRead.php?no=1038133","error":null},"bitmine":{"status":"ok","attemptedAt":"2026-07-15T03:26:48.938Z","lastSuccessAt":"2026-07-15T03:26:48.938Z","source":"https://www.prnewswire.com/news-releases/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-5-77-million-tokens-and-total-crypto-and-total-cash-holdings-of-11-3-billion-302823523.html","error":null},"strategy":{"status":"ok","attemptedAt":"2026-07-15T03:26:48.899Z","lastSuccessAt":"2026-07-15T03:26:48.899Z","source":"https://www.strategy.com/assets","error":null}}}};
+  /* TREASURY_PAYLOAD_END */
   globalThis.LATEST_TREASURY = latest;
-  if (typeof TREASURY !== 'undefined' && TREASURY.BMNR) {
-    const entry = [latest.BMNR.holdings[0].asOf, latest.BMNR.holdings[0].coins];
-    const history = TREASURY.BMNR.coins;
-    const existing = history.find(x => x[0] === entry[0]);
-    if (existing) existing[1] = entry[1];
-    else if (!history.length || history[history.length - 1][0] < entry[0]) history.push(entry);
+
+  if (typeof TREASURY === 'undefined') return;
+  const upsert = (history, entries) => {
+    if (!Array.isArray(history) || !Array.isArray(entries)) return;
+    for (const entry of entries) {
+      if (!Array.isArray(entry) || entry.length !== 2) continue;
+      const existing = history.find(point => point[0] === entry[0]);
+      if (existing) existing[1] = entry[1];
+      else history.push([entry[0], entry[1]]);
+    }
+    history.sort((a, b) => a[0].localeCompare(b[0]));
+  };
+
+  for (const [ticker, series] of Object.entries(latest._history || {})) {
+    if (!TREASURY[ticker]) continue;
+    upsert(TREASURY[ticker].coins, series.coins);
+    upsert(TREASURY[ticker].shares, series.shares);
   }
 })();
