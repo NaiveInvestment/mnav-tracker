@@ -69,8 +69,6 @@ function main() {
     ['377030', 1, 100000],
     ['049470', 1, 100000],
     ['288330', 1, 100000],
-    ['112040', 1, 100000],
-    ['042420', 1, 100000],
   ]) {
     validateHolding(payload.KR?.[code], 'BTC', min, max, 160, code);
   }
@@ -83,7 +81,7 @@ function main() {
     }
   }
 
-  for (const key of ['strategy', 'bitmine', 'bitmine-shares', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330', 'dart-112040', 'dart-042420']) {
+  for (const key of ['strategy', 'bitmine', 'bitmine-shares', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330']) {
     const source = payload._meta?.sources?.[key];
     check(Boolean(source), `${key}: source attempt status missing`);
     if (source && source.status !== 'ok') warnings.push(`${key}: ${source.error || source.status}`);

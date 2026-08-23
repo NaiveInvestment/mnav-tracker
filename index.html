@@ -231,7 +231,7 @@ footer a { color: var(--series-1); }
   <div class="hgrid" id="hgrid"></div>
 
   <details class="krsec">
-    <summary>국내 상장사 mNAV·잠재 희석 — 비트맥스 · 비트플래닛 · 파라택시스 · 위메이드 · 네오위즈</summary>
+    <summary>국내 DAT mNAV·잠재 희석 — 비트맥스 · 비트플래닛 · 파라택시스</summary>
     <div class="krbody">
       <table class="krt" id="krt"></table>
       <div class="desc" style="margin:10px 2px 0">단순 mNAV = 시가총액 ÷ 코인가치. Enterprise mNAV = (기본주식 시총 + 부채 원금 + 우선주 − 현금) ÷ 코인가치. 잠재주식은 별도 표기하며 전환사채 부채와 동시에 분자에 더하지 않습니다. 파라택시스이더리움 합병가정은 발표된 신주 수와 양사 코인을 단순 합산한 참고치입니다.</div>
@@ -251,7 +251,7 @@ footer a { color: var(--series-1); }
     · 주식수 기준: 현재 Enterprise mNAV는 모두 기본주식수 기준. MSTR의 가정 완전희석주식수는 주당 코인 가치와 BTC Yield용 보조지표이며 mNAV에는 미사용. BMNR 완전희석 근사치는 기본주식수와 최근 10-Q 잠재증권의 기준일이 달라 참고용.<br>
     · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,070만.<br>
     · 공식 원문: MSTR <a href="https://www.strategy.com/assets" target="_blank" rel="noreferrer">자산·자본구조</a>/<a href="https://www.strategy.com/shares" target="_blank" rel="noreferrer">주식수</a> · BMNR <a href="https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./" target="_blank" rel="noreferrer">회사 발표</a> · SBET <a href="https://www.sec.gov/edgar/browse/?CIK=1981535" target="_blank" rel="noreferrer">SEC 공시</a> · 파라택시스이더리움 <a href="https://www.newswire.co.kr/?md=A10&amp;act=article&amp;no=50194" target="_blank" rel="noreferrer">회사 뉴스룸</a>. 각 보유량 기준일을 누르면 해당 근거가 열림.<br>
-    · 국내 Enterprise mNAV는 연결 기준 현금과 미상환 부채 원금을 사용. 전환 시 주식수 증가와 부채 소멸이 동시에 일어나므로 현재 부채와 완전희석 시총을 한 산식에 함께 넣지 않음. 위메이드·네오위즈홀딩스는 DAT가 아닌 단순 보유로 구분.<br>
+    · 국내 표는 코인 재무전략이 기업가치의 핵심인 DAT와 합병 참고대상만 포함. 단순 코인 보유 기업은 사업가치가 섞여 mNAV 비교가 왜곡되므로 제외. 전환 시 주식수 증가와 부채 소멸이 동시에 일어나므로 현재 부채와 완전희석 시총을 한 산식에 함께 넣지 않음.<br>
     · 시세: 업비트·바이낸스(코인) · 토스증권(국내·미국 주가, 미국 주간거래 반영; 장애 시 야후·네이버 폴백) · 네이버(환율) · 야후(과거 일봉). 실시간 가격을 쓰므로 회사가 종가로 공시하는 mNAV와 장중 차이가 날 수 있음. 투자 판단의 근거가 아닌 참고용.
   </footer>
 </div>
@@ -301,10 +301,6 @@ const KR_COMPANIES = [
     source: KR_LATEST['290560']?.source || 'https://www.newswire.co.kr/newsRead.php?no=1038133', updateMode: 'auto', freshnessDays: 75 },
   { code: '288330', name: '파라택시스코리아', holdings: KR_LATEST['288330']?.holdings || [{ asset: 'BTC', coins: 224.7149, asOf: '2026-06-30' }],
     source: KR_LATEST['288330']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814004297', updateMode: 'auto-quarterly', freshnessDays: 160, halted: true },
-  { code: '112040', name: '위메이드', holdings: KR_LATEST['112040']?.holdings || [{ asset: 'BTC', coins: 215, asOf: '2026-06-30' }],
-    source: KR_LATEST['112040']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003490', updateMode: 'auto-quarterly', freshnessDays: 160, scope: KR_LATEST['112040']?.scope || 'separate', legacy: true },
-  { code: '042420', name: '네오위즈홀딩스', holdings: KR_LATEST['042420']?.holdings || [{ asset: 'BTC', coins: 64, asOf: '2026-06-30' }],
-    source: KR_LATEST['042420']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003736', updateMode: 'auto-quarterly', freshnessDays: 160, scope: KR_LATEST['042420']?.scope || 'consolidated', legacy: true },
 ];
 const REFRESH_MS = 15000;
 /* ======================================================================== */

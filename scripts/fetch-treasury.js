@@ -14,8 +14,6 @@ const KR_DART_COMPANIES = {
   '377030': { corpCode: '01409095', asset: 'BTC', name: 'Bitmax' },
   '049470': { corpCode: '00351579', asset: 'BTC', name: 'BitPlanet' },
   '288330': { corpCode: '01227039', asset: 'BTC', name: 'Parataxis Korea' },
-  '112040': { corpCode: '00444329', asset: 'BTC', name: 'Wemade', scope: 'separate' },
-  '042420': { corpCode: '00266952', asset: 'BTC', name: 'Neowiz Holdings', scope: 'consolidated' },
 };
 const UA = 'mnav-tracker/2.0 (https://github.com/NaiveInvestment/mnav-tracker; naiveinvestment@users.noreply.github.com)';
 const BROWSER_HEADERS = {
@@ -111,20 +109,6 @@ const BASELINE = {
       holdings: [{ asset: 'BTC', coins: 224.7149, asOf: '2026-06-30' }],
       source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814004297',
       updateMode: 'auto-quarterly',
-      verifiedAt: '2026-08-24',
-    },
-    '112040': {
-      holdings: [{ asset: 'BTC', coins: 215, asOf: '2026-06-30' }],
-      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003490',
-      updateMode: 'auto-quarterly',
-      scope: 'separate',
-      verifiedAt: '2026-08-24',
-    },
-    '042420': {
-      holdings: [{ asset: 'BTC', coins: 64, asOf: '2026-06-30' }],
-      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003736',
-      updateMode: 'auto-quarterly',
-      scope: 'consolidated',
       verifiedAt: '2026-08-24',
     },
   },
@@ -476,25 +460,6 @@ function parseDartHolding(code, financialHtml) {
       if (numbers.length >= 4) coins = numbers[3];
       if (coins != null) break;
     }
-  } else if (code === '112040') {
-    const candidates = [];
-    for (const rows of tables) {
-      const text = tableText(rows);
-      if (!/기초 가상자산 수량/.test(text) || !/기말 가상자산 수량/.test(text)) continue;
-      const row = rows.find(cells => cells.some(cell => /^BTC$/i.test(cell)));
-      const assetIndex = row?.findIndex(cell => /^BTC$/i.test(cell)) ?? -1;
-      const numbers = assetIndex >= 0 ? row.slice(assetIndex + 1).map(dartNumber).filter(value => value != null) : [];
-      if (numbers.length >= 4) candidates.push(numbers[3]);
-    }
-    coins = candidates.at(-1) ?? null; // 별도재무제표 표가 연결 표 뒤에 위치한다.
-  } else if (code === '042420') {
-    for (const rows of tables) {
-      const names = rows.find(cells => cells.some(cell => /^Bitcoin$/i.test(cell)));
-      const ending = rows.find(cells => /기말 가상자산 수량/.test(cells[0] || ''));
-      const bitcoinIndex = names?.findIndex(cell => /^Bitcoin$/i.test(cell)) ?? -1;
-      if (bitcoinIndex >= 0 && ending) coins = dartNumber(ending[bitcoinIndex + 1]);
-      if (coins != null) break;
-    }
   }
 
   if (!Number.isFinite(coins) || coins <= 0 || coins > 100000) {
@@ -617,7 +582,8 @@ function carryHistory(payload, previous) {
 
 function carryPrevious(payload, previous) {
   if (!previous) return;
-  payload._meta.sources = clone(previous._meta?.sources || {});
+  payload._meta.sources = Object.fromEntries(Object.entries(clone(previous._meta?.sources || {}))
+    .filter(([key]) => !key.startsWith('dart-') || Object.hasOwn(KR_DART_COMPANIES, key.slice(5))));
   carryHistory(payload, previous);
 
   const previousMstrDate = latestHoldingDate(previous.MSTR);

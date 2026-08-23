@@ -76,17 +76,9 @@ test('DART company parsers select each disclosed ending BTC balance', () => {
     ['가상자산명칭', '기초', '증가', '감소', '당반기말', '공정가치'],
     ['BTC', '216.6092', '8.1057', '0', '224.7149', '10'],
   ]);
-  const wemade = [
-    table([['구분', '자산', '기초 가상자산 수량', '취득', '처분', '기말 가상자산 수량'], ['연결', 'BTC', '100', '100', '0', '245']]),
-    table([['구분', '자산', '기초 가상자산 수량', '취득', '처분', '기말 가상자산 수량'], ['별도', 'BTC', '100', '100', '0', '215']]),
-  ].join('');
-  const neowiz = table([['Bitcoin', 'Ethereum'], ['기말 가상자산 수량', '64', '262']]);
-
   assert.equal(parseDartHolding('377030', bitmax), 551.504);
   assert.equal(parseDartHolding('049470', bitplanet), 300);
   assert.equal(parseDartHolding('288330', parataxis), 224.7149);
-  assert.equal(parseDartHolding('112040', wemade), 215);
-  assert.equal(parseDartHolding('042420', neowiz), 64);
 });
 
 test('DART capital parser keeps debt principal and potential shares separate', () => {

@@ -51,13 +51,11 @@ test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () 
     '049470': { price: 1_000, marketCap: 30_000_000_000, changePct: 0 },
     '290560': { price: 1_000, marketCap: 31_347_000_000, changePct: 0 },
     '288330': { price: 1_000, marketCap: 22_471_490_000, changePct: 0 },
-    '112040': { price: 1_000, marketCap: 21_500_000_000, changePct: 0 },
-    '042420': { price: 1_000, marketCap: 6_400_000_000, changePct: 0 },
   };
 
   const rows = buildRows();
   const krRows = rows.filter(row => row.market === 'KR');
-  assert.equal(krRows.length, 6);
+  assert.equal(krRows.length, 4);
   for (const row of krRows) assert.ok(Math.abs(row.equityMnav - 1) < 1e-12, row.key);
   const bitmax = krRows.find(row => row.key === '377030');
   const bitplanet = krRows.find(row => row.key === '049470');
@@ -75,8 +73,7 @@ test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () 
   assert.match(krTable.innerHTML, /Enterprise mNAV/);
   assert.match(krTable.innerHTML, /잠재 희석/);
   assert.match(krTable.innerHTML, /합병가정/);
-  assert.equal((krTable.innerHTML.match(/1\.00×/g) || []).length, 6);
-  assert.equal((krTable.innerHTML.match(/공시 자동/g) || []).length, 5);
-  assert.match(krTable.innerHTML, /별도 기준/);
-  assert.match(krTable.innerHTML, /연결 기준/);
+  assert.equal((krTable.innerHTML.match(/1\.00×/g) || []).length, 4);
+  assert.equal((krTable.innerHTML.match(/공시 자동/g) || []).length, 3);
+  assert.doesNotMatch(krTable.innerHTML, /위메이드|네오위즈홀딩스/);
 });

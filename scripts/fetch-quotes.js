@@ -5,7 +5,7 @@ const path = require('path');
 const { usQuote, krQuote, fxQuote } = require('../quotes-lib');
 
 const US_SYMBOLS = ['MSTR', 'BMNR', 'SBET'];
-const KR_CODES = ['377030', '049470', '290560', '288330', '112040', '042420'];
+const KR_CODES = ['377030', '049470', '290560', '288330'];
 
 async function main() {
   const [usR, krR, fxR] = await Promise.all([
