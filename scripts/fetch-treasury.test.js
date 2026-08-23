@@ -1,6 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
+  dartReportAsOf,
+  parseDartHolding,
+  parseDartRss,
   parseKoreanCount,
   parseParataxisHoldings,
   parseSharpLinkHoldings,
@@ -38,4 +41,46 @@ test('Newswire RFC date keeps the Korean calendar date', () => {
 test('generated payload round-trips source errors containing semicolons', () => {
   const payload = { schemaVersion: 2, _meta: { sources: { test: { error: '403; retry later' } } } };
   assert.deepEqual(parsePayload(renderPayload(payload)), payload);
+});
+
+const table = rows => `<table>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</table>`;
+
+test('DART RSS keeps periodic filings and orders them newest first', () => {
+  const rss = `<rss><channel>
+    <item><title><![CDATA[분기보고서 (2026.09)]]></title><link>https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261114000001</link><pubDate>Sat, 14 Nov 2026 10:00:00 +0900</pubDate></item>
+    <item><title><![CDATA[주요사항보고서]]></title><link>https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261001000001</link><pubDate>Thu, 01 Oct 2026 10:00:00 +0900</pubDate></item>
+    <item><title><![CDATA[반기보고서 (2026.06)]]></title><link>https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814000001</link><pubDate>Fri, 14 Aug 2026 10:00:00 +0900</pubDate></item>
+  </channel></rss>`;
+  assert.deepEqual(parseDartRss(rss).map(item => item.rcpNo), ['20261114000001', '20260814000001']);
+});
+
+test('DART company parsers select each disclosed ending BTC balance', () => {
+  const bitmax = table([
+    ['구분', '당반기말 수량', '당반기말 공정가치', '비고'],
+    ['Bitcoin', '10', '551.504', '-'],
+  ]);
+  const bitplanet = table([
+    ['가상자산', '기초', '취득', '처분', '기말', '원화환산'],
+    ['비트코인 (BTC)', '250', '50', '0', '300', '10'],
+  ]);
+  const parataxis = table([
+    ['가상자산명칭', '기초', '증가', '감소', '당반기말', '공정가치'],
+    ['BTC', '216.6092', '8.1057', '0', '224.7149', '10'],
+  ]);
+  const wemade = [
+    table([['구분', '자산', '기초 가상자산 수량', '취득', '처분', '기말 가상자산 수량'], ['연결', 'BTC', '100', '100', '0', '245']]),
+    table([['구분', '자산', '기초 가상자산 수량', '취득', '처분', '기말 가상자산 수량'], ['별도', 'BTC', '100', '100', '0', '215']]),
+  ].join('');
+  const neowiz = table([['Bitcoin', 'Ethereum'], ['기말 가상자산 수량', '64', '262']]);
+
+  assert.equal(parseDartHolding('377030', bitmax), 551.504);
+  assert.equal(parseDartHolding('049470', bitplanet), 300);
+  assert.equal(parseDartHolding('288330', parataxis), 224.7149);
+  assert.equal(parseDartHolding('112040', wemade), 215);
+  assert.equal(parseDartHolding('042420', neowiz), 64);
+});
+
+test('DART report date uses the filing period or statement date', () => {
+  assert.equal(dartReportAsOf('반기보고서 (2026.06)', ''), '2026-06-30');
+  assert.equal(dartReportAsOf('반기보고서', '<p>2026년 6월 30일 현재</p>'), '2026-06-30');
 });

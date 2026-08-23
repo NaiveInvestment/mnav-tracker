@@ -246,8 +246,8 @@ footer a { color: var(--series-1); }
   <footer>
     <b>참고</b><br>
     · 산식: <b>Enterprise mNAV = (기본주식 시총 + 이자부채 원금 + 영구우선주 명목액 − 현금) ÷ 코인 준비자산</b>. <a href="https://www.strategy.com/notes" target="_blank" rel="noreferrer">Strategy 공식 정의</a>와 동일한 기준.<br>
-    · 자동 갱신: MSTR의 BTC·기본/완전희석주식수·부채·우선주·현금, BMNR의 ETH·BTC·현금, SBET의 ETH, 파라택시스이더리움(290560)의 ETH를 공식 원문에서 확인. 일시적 조회 실패 시 직전 정상값을 쓰되 기준일이 한도를 넘으면 배포 검증이 실패하고 화면에 ‘확인 필요’를 표시.<br>
-    · 분기 확인: 비트맥스·비트플래닛·파라택시스코리아·위메이드·네오위즈홀딩스는 2026년 1분기 KIND 공시의 취득·처분 후 기말 수량. BMNR 기본주식수·우선주와 SBET 기본주식수·추정 현금은 별도 공시값.<br>
+    · 자동 갱신: MSTR의 BTC·기본/완전희석주식수·부채·우선주·현금, BMNR의 ETH·BTC·현금, SBET의 ETH, 파라택시스이더리움(290560)의 ETH를 공식 원문에서 확인. 국내 5개사의 BTC는 DART 정기공시 RSS를 감시해 새 사업·반기·분기보고서가 나오면 자동 반영. 일시적 조회 실패 시 직전 정상값을 쓰되 기준일이 한도를 넘으면 배포 검증이 실패하고 화면에 ‘확인 필요’를 표시.<br>
+    · 국내 공시 범위: 비트맥스·비트플래닛·파라택시스코리아는 공시 표의 기말 수량, 위메이드는 별도재무제표 기준, 네오위즈홀딩스는 연결재무제표 기준. BMNR 기본주식수·우선주와 SBET 기본주식수·추정 현금은 별도 공시값.<br>
     · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,070만.<br>
     · 공식 원문: MSTR <a href="https://www.strategy.com/assets" target="_blank" rel="noreferrer">자산·자본구조</a>/<a href="https://www.strategy.com/shares" target="_blank" rel="noreferrer">주식수</a> · BMNR <a href="https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./" target="_blank" rel="noreferrer">회사 발표</a> · SBET <a href="https://www.sec.gov/edgar/browse/?CIK=1981535" target="_blank" rel="noreferrer">SEC 공시</a> · 파라택시스이더리움 <a href="https://www.newswire.co.kr/?md=A10&amp;act=article&amp;no=50194" target="_blank" rel="noreferrer">회사 뉴스룸</a>. 각 보유량 기준일을 누르면 해당 근거가 열림.<br>
     · 국내는 현재 시가총액 ÷ 보유 코인 가치인 ‘시총 mNAV’를 별도 표시. 동일 기준일의 현금·부채·우선주가 없어 미국사의 Enterprise mNAV 비교에는 섞지 않음. 과거 주식수는 완전희석 근사치이며 현재 mNAV 계산에는 사용하지 않음.<br>
@@ -286,18 +286,18 @@ const US_COMPANIES = [
     source: SBET_LATEST?.source || 'https://www.sec.gov/Archives/edgar/data/1981535/000149315226031202/form8-k.htm', updateMode: 'auto-holdings', freshnessDays: 75 },
 ];
 const KR_COMPANIES = [
-  { code: '377030', name: '비트맥스', holdings: KR_LATEST['377030']?.holdings || [{ asset: 'BTC', coins: 551.238, asOf: '2026-03-31' }],
-    source: KR_LATEST['377030']?.source || 'https://kind.krx.co.kr/external/2026/05/15/001922/20260515004270/11013.htm', updateMode: 'quarterly', freshnessDays: 170 },
-  { code: '049470', name: '비트플래닛', holdings: KR_LATEST['049470']?.holdings || [{ asset: 'BTC', coins: 299.999874, asOf: '2026-03-31' }],
-    source: KR_LATEST['049470']?.source || 'https://kind.krx.co.kr/external/2026/05/15/003367/20260515007717/11013.htm', updateMode: 'quarterly', freshnessDays: 170 },
+  { code: '377030', name: '비트맥스', holdings: KR_LATEST['377030']?.holdings || [{ asset: 'BTC', coins: 551.504, asOf: '2026-06-30' }],
+    source: KR_LATEST['377030']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003195', updateMode: 'auto-quarterly', freshnessDays: 160 },
+  { code: '049470', name: '비트플래닛', holdings: KR_LATEST['049470']?.holdings || [{ asset: 'BTC', coins: 300, asOf: '2026-06-30' }],
+    source: KR_LATEST['049470']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003703', updateMode: 'auto-quarterly', freshnessDays: 160 },
   { code: '290560', name: '파라택시스이더리움', holdings: KR_LATEST['290560']?.holdings || [{ asset: 'ETH', coins: 10449, asOf: '2026-07-08' }],
     source: KR_LATEST['290560']?.source || 'https://www.newswire.co.kr/newsRead.php?no=1038133', updateMode: 'auto', freshnessDays: 75 },
-  { code: '288330', name: '파라택시스코리아', holdings: KR_LATEST['288330']?.holdings || [{ asset: 'BTC', coins: 216.6092, asOf: '2026-03-31' }],
-    source: KR_LATEST['288330']?.source || 'https://kind.krx.co.kr/external/2026/05/15/001508/20260515003302/11013.htm', updateMode: 'quarterly', freshnessDays: 170, halted: true },
-  { code: '112040', name: '위메이드', holdings: KR_LATEST['112040']?.holdings || [{ asset: 'BTC', coins: 215, asOf: '2026-03-31' }],
-    source: KR_LATEST['112040']?.source || 'https://kind.krx.co.kr/external/2026/05/15/003103/20260515007084/11013.htm', updateMode: 'quarterly', freshnessDays: 170, legacy: true },
-  { code: '042420', name: '네오위즈홀딩스', holdings: KR_LATEST['042420']?.holdings || [{ asset: 'BTC', coins: 78, asOf: '2026-03-31' }],
-    source: KR_LATEST['042420']?.source || 'https://kind.krx.co.kr/external/2026/05/15/001987/20260515004398/11013.htm', updateMode: 'quarterly', freshnessDays: 170, legacy: true },
+  { code: '288330', name: '파라택시스코리아', holdings: KR_LATEST['288330']?.holdings || [{ asset: 'BTC', coins: 224.7149, asOf: '2026-06-30' }],
+    source: KR_LATEST['288330']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814004297', updateMode: 'auto-quarterly', freshnessDays: 160, halted: true },
+  { code: '112040', name: '위메이드', holdings: KR_LATEST['112040']?.holdings || [{ asset: 'BTC', coins: 215, asOf: '2026-06-30' }],
+    source: KR_LATEST['112040']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003490', updateMode: 'auto-quarterly', freshnessDays: 160, scope: KR_LATEST['112040']?.scope || 'separate', legacy: true },
+  { code: '042420', name: '네오위즈홀딩스', holdings: KR_LATEST['042420']?.holdings || [{ asset: 'BTC', coins: 64, asOf: '2026-06-30' }],
+    source: KR_LATEST['042420']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003736', updateMode: 'auto-quarterly', freshnessDays: 160, scope: KR_LATEST['042420']?.scope || 'consolidated', legacy: true },
 ];
 const REFRESH_MS = 15000;
 /* ======================================================================== */
@@ -478,7 +478,7 @@ function buildRows() {
       key: c.code, name: c.name, tick2: c.code, market: 'KR', cur: 'KRW',
       holdings, coinValue: cv, mcap,
       equityMnav: mcap != null && cv ? mcap / cv : null,
-      source: c.source, updateMode: c.updateMode,
+      source: c.source, updateMode: c.updateMode, scope: c.scope,
       stale: c.holdings.some(h => holdingIsStale(h.asOf, c.freshnessDays)),
       price, priceStr: fmt.krw(price),
       changePct: c.halted ? null : q?.changePct,
@@ -595,10 +595,14 @@ function renderKrTable(rows) {
     const disc = r.equityMnav != null ? (r.equityMnav - 1) * 100 : null;
     const sourceUrl = safeSourceUrl(r.source);
     const sourceDate = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noreferrer">${h.asOf}</a>` : h.asOf;
-    const updateBadge = r.updateMode === 'auto' ? '<span class="badge auto">자동</span>' : '<span class="badge">분기공시</span>';
+    const updateBadge = r.updateMode === 'auto' ? '<span class="badge auto">자동</span>'
+      : r.updateMode === 'auto-quarterly' ? '<span class="badge auto">공시 자동</span>'
+      : '<span class="badge">분기공시</span>';
+    const scopeBadge = r.scope === 'separate' ? '<span class="badge">별도 기준</span>'
+      : r.scope === 'consolidated' ? '<span class="badge">연결 기준</span>' : '';
     return `
     <tr>
-      <td>${r.name}<span class="tick2">${r.tick2}</span>${updateBadge}${r.halted ? '<span class="badge">거래정지</span>' : ''}${r.legacy ? '<span class="badge">단순보유</span>' : ''}${r.stale ? '<span class="badge stale">확인 필요</span>' : ''}</td>
+      <td>${r.name}<span class="tick2">${r.tick2}</span>${updateBadge}${scopeBadge}${r.halted ? '<span class="badge">거래정지</span>' : ''}${r.legacy ? '<span class="badge">단순보유</span>' : ''}${r.stale ? '<span class="badge stale">확인 필요</span>' : ''}</td>
       <td>${fmt.coins(h.coins, h.asset)}</td>
       <td>${sourceDate}</td>
       <td>${fmt.krwBig(r.coinValue)}</td>

@@ -8,6 +8,14 @@ const STRATEGY_SHARES_URL = 'https://www.strategy.com/shares';
 const BITMINE_LIST_URL = 'https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./';
 const SHARPLINK_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK0001981535.json';
 const PARATAXIS_RSS_URL = 'https://www.newswire.co.kr/companyNews?content=rss&no=50194';
+const DART_BASE_URL = 'https://dart.fss.or.kr';
+const KR_DART_COMPANIES = {
+  '377030': { corpCode: '01409095', asset: 'BTC', name: 'Bitmax' },
+  '049470': { corpCode: '00351579', asset: 'BTC', name: 'BitPlanet' },
+  '288330': { corpCode: '01227039', asset: 'BTC', name: 'Parataxis Korea' },
+  '112040': { corpCode: '00444329', asset: 'BTC', name: 'Wemade', scope: 'separate' },
+  '042420': { corpCode: '00266952', asset: 'BTC', name: 'Neowiz Holdings', scope: 'consolidated' },
+};
 const UA = 'mnav-tracker/2.0 (https://github.com/NaiveInvestment/mnav-tracker; naiveinvestment@users.noreply.github.com)';
 const BROWSER_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
@@ -72,16 +80,16 @@ const BASELINE = {
   },
   KR: {
     '377030': {
-      holdings: [{ asset: 'BTC', coins: 551.238, asOf: '2026-03-31' }],
-      source: 'https://kind.krx.co.kr/external/2026/05/15/001922/20260515004270/11013.htm',
-      updateMode: 'quarterly',
-      verifiedAt: '2026-07-15',
+      holdings: [{ asset: 'BTC', coins: 551.504, asOf: '2026-06-30' }],
+      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003195',
+      updateMode: 'auto-quarterly',
+      verifiedAt: '2026-08-24',
     },
     '049470': {
-      holdings: [{ asset: 'BTC', coins: 299.999874, asOf: '2026-03-31' }],
-      source: 'https://kind.krx.co.kr/external/2026/05/15/003367/20260515007717/11013.htm',
-      updateMode: 'quarterly',
-      verifiedAt: '2026-07-15',
+      holdings: [{ asset: 'BTC', coins: 300, asOf: '2026-06-30' }],
+      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003703',
+      updateMode: 'auto-quarterly',
+      verifiedAt: '2026-08-24',
     },
     '290560': {
       holdings: [{ asset: 'ETH', coins: 10449, asOf: '2026-07-08' }],
@@ -90,22 +98,24 @@ const BASELINE = {
       verifiedAt: '2026-07-15',
     },
     '288330': {
-      holdings: [{ asset: 'BTC', coins: 216.6092, asOf: '2026-03-31' }],
-      source: 'https://kind.krx.co.kr/external/2026/05/15/001508/20260515003302/11013.htm',
-      updateMode: 'quarterly',
-      verifiedAt: '2026-07-15',
+      holdings: [{ asset: 'BTC', coins: 224.7149, asOf: '2026-06-30' }],
+      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814004297',
+      updateMode: 'auto-quarterly',
+      verifiedAt: '2026-08-24',
     },
     '112040': {
-      holdings: [{ asset: 'BTC', coins: 215, asOf: '2026-03-31' }],
-      source: 'https://kind.krx.co.kr/external/2026/05/15/003103/20260515007084/11013.htm',
-      updateMode: 'quarterly',
-      verifiedAt: '2026-07-15',
+      holdings: [{ asset: 'BTC', coins: 215, asOf: '2026-06-30' }],
+      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003490',
+      updateMode: 'auto-quarterly',
+      scope: 'separate',
+      verifiedAt: '2026-08-24',
     },
     '042420': {
-      holdings: [{ asset: 'BTC', coins: 78, asOf: '2026-03-31' }],
-      source: 'https://kind.krx.co.kr/external/2026/05/15/001987/20260515004398/11013.htm',
-      updateMode: 'quarterly',
-      verifiedAt: '2026-07-15',
+      holdings: [{ asset: 'BTC', coins: 64, asOf: '2026-06-30' }],
+      source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003736',
+      updateMode: 'auto-quarterly',
+      scope: 'consolidated',
+      verifiedAt: '2026-08-24',
     },
   },
   _history: {
@@ -340,6 +350,172 @@ async function fetchParataxis() {
   throw new Error('Parataxis Ethereum total ETH holdings not found in company RSS');
 }
 
+function parseDartRss(xml) {
+  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)]
+    .map(match => match[1])
+    .map(item => {
+      const title = htmlToText(xmlValue(item, 'title') || '');
+      const source = xmlValue(item, 'link');
+      const pubDate = xmlValue(item, 'pubDate');
+      const rcpNo = source?.match(/[?&]rcpNo=(\d{14})/)?.[1] || null;
+      return { title, source, pubDate, rcpNo };
+    })
+    .filter(item => item.source && item.rcpNo && /(사업보고서|반기보고서|분기보고서)/.test(item.title))
+    .sort((a, b) => (Date.parse(b.pubDate) || 0) - (Date.parse(a.pubDate) || 0));
+}
+
+function dartNode(mainHtml, textPattern) {
+  const blocks = [...mainHtml.matchAll(/var node1 = \{\};([\s\S]*?)treeData\.push\(node1\);/g)];
+  for (const match of blocks) {
+    const block = match[1];
+    const text = block.match(/node1\['text'\] = "([^"]+)"/)?.[1] || '';
+    if (!textPattern.test(text)) continue;
+    const field = name => block.match(new RegExp(`node1\\['${name}'\\] = "([^"]+)"`))?.[1];
+    const node = {
+      text,
+      dcmNo: field('dcmNo'),
+      eleId: field('eleId'),
+      offset: field('offset'),
+      length: field('length'),
+      dtd: field('dtd') || 'dart4.xsd',
+    };
+    if (Object.values(node).some(value => !value)) throw new Error(`incomplete DART node: ${text}`);
+    return node;
+  }
+  throw new Error(`DART node not found: ${textPattern}`);
+}
+
+function dartViewerUrl(rcpNo, node) {
+  const params = new URLSearchParams({
+    rcpNo,
+    dcmNo: node.dcmNo,
+    eleId: node.eleId,
+    offset: node.offset,
+    length: node.length,
+    dtd: node.dtd,
+  });
+  return `${DART_BASE_URL}/report/viewer.do?${params}`;
+}
+
+function dartTableRows(html) {
+  return [...html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)]
+    .map(table => [...table[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
+      .map(row => [...row[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)]
+        .map(cell => htmlToText(cell[1]))
+        .filter(Boolean))
+      .filter(row => row.length));
+}
+
+function dartNumber(value) {
+  const compact = String(value || '').replace(/[\s,]/g, '');
+  if (!compact || compact === '-' || compact === '–') return null;
+  const signed = /^\((.+)\)$/.test(compact) ? `-${compact.slice(1, -1)}` : compact;
+  const number = Number(signed);
+  return Number.isFinite(number) ? number : null;
+}
+
+function parseDartHolding(code, financialHtml) {
+  const tables = dartTableRows(financialHtml);
+  const tableText = rows => rows.flat().join(' ');
+  let coins = null;
+
+  if (code === '377030') {
+    for (const rows of tables) {
+      const text = tableText(rows);
+      if (!/당반기말/.test(text) || !/공정가치/.test(text)) continue;
+      const row = rows.find(cells => /^Bitcoin$/i.test(cells[0] || ''));
+      if (row) coins = dartNumber(row.at(-2));
+      if (coins != null) break;
+    }
+  } else if (code === '049470') {
+    for (const rows of tables) {
+      if (!/기초/.test(tableText(rows)) || !/기말/.test(tableText(rows))) continue;
+      const row = rows.find(cells => /비트코인\s*\(BTC\)/i.test(cells[0] || ''));
+      if (row) coins = dartNumber(row.at(-2));
+      if (coins != null) break;
+    }
+  } else if (code === '288330') {
+    for (const rows of tables) {
+      if (!/가상자산명칭/.test(tableText(rows)) || !/당반기말/.test(tableText(rows))) continue;
+      const row = rows.find(cells => /^BTC(?:\W|$)/i.test(cells[0] || ''));
+      const numbers = row?.slice(1).map(dartNumber).filter(value => value != null) || [];
+      if (numbers.length >= 4) coins = numbers[3];
+      if (coins != null) break;
+    }
+  } else if (code === '112040') {
+    const candidates = [];
+    for (const rows of tables) {
+      const text = tableText(rows);
+      if (!/기초 가상자산 수량/.test(text) || !/기말 가상자산 수량/.test(text)) continue;
+      const row = rows.find(cells => cells.some(cell => /^BTC$/i.test(cell)));
+      const assetIndex = row?.findIndex(cell => /^BTC$/i.test(cell)) ?? -1;
+      const numbers = assetIndex >= 0 ? row.slice(assetIndex + 1).map(dartNumber).filter(value => value != null) : [];
+      if (numbers.length >= 4) candidates.push(numbers[3]);
+    }
+    coins = candidates.at(-1) ?? null; // 별도재무제표 표가 연결 표 뒤에 위치한다.
+  } else if (code === '042420') {
+    for (const rows of tables) {
+      const names = rows.find(cells => cells.some(cell => /^Bitcoin$/i.test(cell)));
+      const ending = rows.find(cells => /기말 가상자산 수량/.test(cells[0] || ''));
+      const bitcoinIndex = names?.findIndex(cell => /^Bitcoin$/i.test(cell)) ?? -1;
+      if (bitcoinIndex >= 0 && ending) coins = dartNumber(ending[bitcoinIndex + 1]);
+      if (coins != null) break;
+    }
+  }
+
+  if (!Number.isFinite(coins) || coins <= 0 || coins > 100000) {
+    throw new Error(`${code}: DART BTC holding not found or outside bounds (${coins})`);
+  }
+  return coins;
+}
+
+function dartReportAsOf(title, financialHtml) {
+  const period = title.match(/\((\d{4})\.(\d{1,2})\)/);
+  if (period) {
+    const year = Number(period[1]);
+    const month = Number(period[2]);
+    return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  }
+  const text = htmlToText(financialHtml);
+  const date = text.match(/(20\d{2})년\s*(\d{1,2})월\s*(\d{1,2})일\s*현재/);
+  if (!date) throw new Error(`DART report period not found: ${title}`);
+  return `${date[1]}-${date[2].padStart(2, '0')}-${date[3].padStart(2, '0')}`;
+}
+
+async function fetchDartReport(code, report) {
+  const mainUrl = `${DART_BASE_URL}/dsaf001/main.do?rcpNo=${report.rcpNo}`;
+  const mainHtml = await fetchText(mainUrl, BROWSER_HEADERS);
+  const financialNode = dartNode(mainHtml, /^III\. 재무에 관한 사항$/);
+  const financialHtml = await fetchText(dartViewerUrl(report.rcpNo, financialNode), BROWSER_HEADERS, 30000);
+  const config = KR_DART_COMPANIES[code];
+  return {
+    holdings: [{ asset: config.asset, coins: parseDartHolding(code, financialHtml), asOf: dartReportAsOf(report.title, financialHtml) }],
+    source: mainUrl,
+    updateMode: 'auto-quarterly',
+    scope: config.scope,
+    verifiedAt: new Date().toISOString().slice(0, 10),
+    fetchedAt: new Date().toISOString(),
+  };
+}
+
+async function fetchDartHolding(code, current) {
+  const config = KR_DART_COMPANIES[code];
+  if (!config) throw new Error(`unsupported DART company: ${code}`);
+  const rssUrl = `${DART_BASE_URL}/api/companyRSS.xml?crpCd=${config.corpCode}`;
+  const xml = await fetchText(rssUrl, { ...DEFAULT_HEADERS, Accept: 'application/xml,text/xml' });
+  const currentDate = latestHoldingDate(current);
+  for (const report of parseDartRss(xml)) {
+    const candidate = await fetchDartReport(code, report);
+    if (!currentDate || latestHoldingDate(candidate) >= currentDate) return candidate;
+  }
+  return {
+    ...clone(current),
+    updateMode: 'auto-quarterly',
+    fetchedAt: new Date().toISOString(),
+    checkedRss: rssUrl,
+  };
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -389,6 +565,12 @@ function carryPrevious(payload, previous) {
   const previousParataxisDate = latestHoldingDate(previous.KR?.['290560']);
   if (previousParataxisDate && previousParataxisDate >= latestHoldingDate(payload.KR['290560'])) {
     payload.KR['290560'] = { ...payload.KR['290560'], ...previous.KR['290560'] };
+  }
+  for (const code of Object.keys(KR_DART_COMPANIES)) {
+    const previousDate = latestHoldingDate(previous.KR?.[code]);
+    if (previousDate && previousDate >= latestHoldingDate(payload.KR[code])) {
+      payload.KR[code] = { ...payload.KR[code], ...previous.KR[code] };
+    }
   }
 }
 
@@ -458,6 +640,10 @@ async function main() {
       requireCurrentOrNewer(payload.KR['290560'], data, 'Parataxis Ethereum');
       payload.KR['290560'] = { ...payload.KR['290560'], ...data };
     }),
+    ...Object.keys(KR_DART_COMPANIES).map(code => runSource(payload, `dart-${code}`, () => fetchDartHolding(code, payload.KR[code]), data => {
+      requireCurrentOrNewer(payload.KR[code], data, KR_DART_COMPANIES[code].name);
+      payload.KR[code] = { ...payload.KR[code], ...data };
+    })),
   ]);
 
   payload.generatedAt = new Date().toISOString();
@@ -477,6 +663,13 @@ module.exports = {
   fetchParataxis,
   fetchSharpLink,
   fetchStrategy,
+  fetchDartReport,
+  parseDartHolding,
+  parseDartRss,
+  dartReportAsOf,
+  dartNode,
+  dartTableRows,
+  dartViewerUrl,
   parseKoreanCount,
   parseParataxisHoldings,
   parseSharpLinkHoldings,

@@ -70,10 +70,10 @@ function main() {
     ['112040', 1, 100000],
     ['042420', 1, 100000],
   ]) {
-    validateHolding(payload.KR?.[code], 'BTC', min, max, 170, code);
+    validateHolding(payload.KR?.[code], 'BTC', min, max, 160, code);
   }
 
-  for (const key of ['strategy', 'bitmine', 'sharplink', 'parataxis']) {
+  for (const key of ['strategy', 'bitmine', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330', 'dart-112040', 'dart-042420']) {
     const source = payload._meta?.sources?.[key];
     check(Boolean(source), `${key}: source attempt status missing`);
     if (source && source.status !== 'ok') warnings.push(`${key}: ${source.error || source.status}`);

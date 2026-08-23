@@ -47,12 +47,12 @@ test('Korean rows calculate and render market-cap mNAV', () => {
     ETH_KRW: { price: 3_000_000 },
   };
   state.kr = {
-    '377030': { price: 1_000, marketCap: 55_123_800_000, changePct: 0 },
-    '049470': { price: 1_000, marketCap: 29_999_987_400, changePct: 0 },
+    '377030': { price: 1_000, marketCap: 55_150_400_000, changePct: 0 },
+    '049470': { price: 1_000, marketCap: 30_000_000_000, changePct: 0 },
     '290560': { price: 1_000, marketCap: 31_347_000_000, changePct: 0 },
-    '288330': { price: 1_000, marketCap: 21_660_920_000, changePct: 0 },
+    '288330': { price: 1_000, marketCap: 22_471_490_000, changePct: 0 },
     '112040': { price: 1_000, marketCap: 21_500_000_000, changePct: 0 },
-    '042420': { price: 1_000, marketCap: 7_800_000_000, changePct: 0 },
+    '042420': { price: 1_000, marketCap: 6_400_000_000, changePct: 0 },
   };
 
   const rows = buildRows();
@@ -63,4 +63,7 @@ test('Korean rows calculate and render market-cap mNAV', () => {
   renderKrTable(rows);
   assert.match(krTable.innerHTML, /시총 mNAV/);
   assert.equal((krTable.innerHTML.match(/1\.00×/g) || []).length, 6);
+  assert.equal((krTable.innerHTML.match(/공시 자동/g) || []).length, 5);
+  assert.match(krTable.innerHTML, /별도 기준/);
+  assert.match(krTable.innerHTML, /연결 기준/);
 });
