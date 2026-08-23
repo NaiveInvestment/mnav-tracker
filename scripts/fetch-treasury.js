@@ -6,6 +6,7 @@ const { latestHoldingDate, readPayload, upsertPoint, writePayload } = require('.
 const STRATEGY_ASSETS_URL = 'https://www.strategy.com/assets';
 const STRATEGY_SHARES_URL = 'https://www.strategy.com/shares';
 const BITMINE_LIST_URL = 'https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./';
+const BITMINE_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK0001829311.json';
 const SHARPLINK_SUBMISSIONS_URL = 'https://data.sec.gov/submissions/CIK0001981535.json';
 const PARATAXIS_RSS_URL = 'https://www.newswire.co.kr/companyNews?content=rss&no=50194';
 const DART_BASE_URL = 'https://dart.fss.or.kr';
@@ -47,8 +48,10 @@ const BASELINE = {
     verifiedAt: '2026-07-15',
   },
   BMNR: {
-    shares: 569580000,
-    sharesAsOf: '2026-07-02',
+    shares: 603226394,
+    sharesAsOf: '2026-07-09',
+    assumedDilutedShares: 622491223,
+    dilutedAsOf: '잠재증권 2026-05-31 · 기본주식 2026-07-09',
     holdings: [{ asset: 'ETH', coins: 5770038, asOf: '2026-07-12' }, { asset: 'BTC', coins: 206, asOf: '2026-07-12' }],
     ethSupply: 120700000,
     capital: {
@@ -59,6 +62,7 @@ const BASELINE = {
       cashAsOf: '2026-07-12',
     },
     source: 'https://www.prnewswire.com/news-releases/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-5-77-million-tokens-and-total-crypto-and-total-cash-holdings-of-11-3-billion-302823523.html',
+    sharesSource: 'https://www.sec.gov/Archives/edgar/data/1829311/000162828026048157/bmnr-20260531.htm',
     updateMode: 'auto-holdings-cash',
     verifiedAt: '2026-07-15',
   },
@@ -81,18 +85,24 @@ const BASELINE = {
   KR: {
     '377030': {
       holdings: [{ asset: 'BTC', coins: 551.504, asOf: '2026-06-30' }],
+      capital: { debt: 75750000000, preferred: 0, cash: 8512686084, asOf: '2026-06-30' },
+      dilution: { cbShares: 25043129, optionShares: 0, asOf: '2026-06-30' },
       source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003195',
       updateMode: 'auto-quarterly',
       verifiedAt: '2026-08-24',
     },
     '049470': {
       holdings: [{ asset: 'BTC', coins: 300, asOf: '2026-06-30' }],
+      capital: { debt: 7000000000, preferred: 0, cash: 13290550919, asOf: '2026-06-30' },
+      dilution: { cbShares: 1841315, optionShares: 353173, asOf: '2026-06-30' },
       source: 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003703',
       updateMode: 'auto-quarterly',
       verifiedAt: '2026-08-24',
     },
     '290560': {
       holdings: [{ asset: 'ETH', coins: 10449, asOf: '2026-07-08' }],
+      capital: { debt: 6000000000, preferred: 0, cash: 2253892824, asOf: '2026-06-30' },
+      dilution: { cbShares: 3896100, optionShares: 346850, asOf: '2026-06-30' },
       source: 'https://www.newswire.co.kr/newsRead.php?no=1038133',
       updateMode: 'auto',
       verifiedAt: '2026-07-15',
@@ -120,7 +130,7 @@ const BASELINE = {
   },
   _history: {
     MSTR: { coins: [['2026-07-13', 843775]], shares: [['2026-07-12', 406099000]] },
-    BMNR: { coins: [['2026-07-12', 5770038]], shares: [] },
+    BMNR: { coins: [['2026-07-12', 5770038]], shares: [['2026-07-09', 603226394]] },
     SBET: { coins: [['2026-06-28', 886725]], shares: [['2026-06-26', 205091990]] },
   },
   _meta: { sources: {} },
@@ -247,6 +257,30 @@ async function fetchBitMine() {
     updateMode: 'auto-holdings-cash',
     fetchedAt: new Date().toISOString(),
   };
+}
+
+function parseSecOutstandingShares(text) {
+  const normalized = htmlToText(text);
+  const match = normalized.match(/number of shares outstanding[^.]{0,180}?as of ([A-Z][a-z]+\s+\d{1,2},\s+\d{4}) was ([\d,]+) shares/i);
+  if (!match) return null;
+  return { sharesAsOf: isoDate(match[1]), shares: numberValue(match[2], 'SEC basic shares') };
+}
+
+async function fetchBitMineShares() {
+  const submissions = await fetchJson(BITMINE_SUBMISSIONS_URL, SEC_HEADERS);
+  const recent = submissions.filings?.recent;
+  if (!recent) throw new Error('BitMine SEC recent filings missing');
+  for (let i = 0; i < recent.form.length; i += 1) {
+    if (!['10-Q', '10-K'].includes(recent.form[i]) || !recent.primaryDocument[i]) continue;
+    const accession = recent.accessionNumber[i].replace(/-/g, '');
+    const source = `https://www.sec.gov/Archives/edgar/data/1829311/${accession}/${recent.primaryDocument[i]}`;
+    const html = await fetchText(source, SEC_HEADERS);
+    const parsed = parseSecOutstandingShares(html);
+    if (parsed && Number.isSafeInteger(parsed.shares) && parsed.shares >= 100000000) {
+      return { ...parsed, sharesSource: source, source, fetchedAt: new Date().toISOString() };
+    }
+  }
+  throw new Error('BitMine basic shares not found in latest SEC periodic filings');
 }
 
 function parseSharpLinkHoldings(text) {
@@ -469,6 +503,48 @@ function parseDartHolding(code, financialHtml) {
   return coins;
 }
 
+function parseDartCapital(code, financialHtml) {
+  if (!['377030', '049470', '290560'].includes(code)) return null;
+  const tables = dartTableRows(financialHtml);
+  const summary = tables.find(rows => rows.some(cells => /^자산총계/.test(cells[0] || ''))
+    && rows.some(cells => /^현금및현금성자산/.test(cells[0] || '')));
+  const cashRow = summary?.find(cells => /^현금및현금성자산/.test(cells[0] || ''));
+  const cash = dartNumber(cashRow?.[1]);
+
+  const cbTable = tables.find(rows => rows[0]?.some(cell => /권면\(전자등록\)총액/.test(cell))
+    && rows[1]?.some(cell => /전환가능주식수/.test(cell)));
+  const cbTotal = cbTable?.find(cells => /^합\s*계$/.test(cells[0] || ''));
+  let debt = dartNumber(cbTotal?.at(-3));
+  const cbShares = dartNumber(cbTotal?.at(-2));
+  if (debt != null && debt < 100000000) debt *= 1000000; // DART tables disclosed in KRW million
+
+  let optionShares = 0;
+  if (code === '377030') {
+    const debtTable = tables.find(rows => rows.some(cells => /^전환사채$/.test(cells[0] || ''))
+      && rows.some(cells => /^사채$/.test(cells[0] || ''))
+      && rows.some(cells => cells.some(cell => /^구분$/.test(cell))));
+    const bondRow = debtTable?.find(cells => /^사채$/.test(cells[0] || ''));
+    const otherDebt = dartNumber(bondRow?.[3]);
+    if (otherDebt != null) debt += otherDebt;
+  } else if (code === '049470') {
+    const optionTable = tables.find(rows => rows.some(cells => /^당반기말 잔여주$/.test(cells[0] || '')));
+    optionShares = dartNumber(optionTable?.find(cells => /^당반기말 잔여주$/.test(cells[0] || ''))?.[1]) || 0;
+  } else if (code === '290560') {
+    const optionTable = tables.find(rows => rows[0]?.some(cell => /잔여부여수량/.test(cell)));
+    optionShares = (optionTable || []).slice(1)
+      .filter(cells => /주식매수선택권/.test(cells[0] || ''))
+      .reduce((sum, cells) => sum + (dartNumber(cells.at(-1)) || 0), 0);
+  }
+
+  if (![cash, debt, cbShares, optionShares].every(Number.isFinite) || cash < 0 || debt < 0 || cbShares < 0 || optionShares < 0) {
+    throw new Error(`${code}: DART capital or dilution data missing`);
+  }
+  return {
+    capital: { debt, preferred: 0, cash },
+    dilution: { cbShares, optionShares },
+  };
+}
+
 function dartReportAsOf(title, financialHtml) {
   const period = title.match(/\((\d{4})\.(\d{1,2})\)/);
   if (period) {
@@ -488,8 +564,14 @@ async function fetchDartReport(code, report) {
   const financialNode = dartNode(mainHtml, /^III\. 재무에 관한 사항$/);
   const financialHtml = await fetchText(dartViewerUrl(report.rcpNo, financialNode), BROWSER_HEADERS, 30000);
   const config = KR_DART_COMPANIES[code];
+  const asOf = dartReportAsOf(report.title, financialHtml);
+  const structure = parseDartCapital(code, financialHtml);
   return {
-    holdings: [{ asset: config.asset, coins: parseDartHolding(code, financialHtml), asOf: dartReportAsOf(report.title, financialHtml) }],
+    holdings: [{ asset: config.asset, coins: parseDartHolding(code, financialHtml), asOf }],
+    ...(structure ? {
+      capital: { ...structure.capital, asOf },
+      dilution: { ...structure.dilution, asOf },
+    } : {}),
     source: mainUrl,
     updateMode: 'auto-quarterly',
     scope: config.scope,
@@ -631,6 +713,11 @@ async function main() {
       payload.BMNR = { ...payload.BMNR, ...data, capital: { ...payload.BMNR.capital, ...data.capital } };
       upsertPoint(payload._history.BMNR.coins, data.holdings[0].asOf, data.holdings[0].coins);
     }),
+    runSource(payload, 'bitmine-shares', fetchBitMineShares, data => {
+      if (data.sharesAsOf < payload.BMNR.sharesAsOf) throw new Error(`BitMine shares regressed to ${data.sharesAsOf}`);
+      payload.BMNR = { ...payload.BMNR, ...data };
+      upsertPoint(payload._history.BMNR.shares, data.sharesAsOf, data.shares);
+    }),
     runSource(payload, 'sharplink', fetchSharpLink, data => {
       requireCurrentOrNewer(payload.SBET, data, 'Sharplink');
       payload.SBET = { ...payload.SBET, ...data };
@@ -660,11 +747,13 @@ if (require.main === module) {
 module.exports = {
   BASELINE,
   fetchBitMine,
+  fetchBitMineShares,
   fetchParataxis,
   fetchSharpLink,
   fetchStrategy,
   fetchDartReport,
   parseDartHolding,
+  parseDartCapital,
   parseDartRss,
   dartReportAsOf,
   dartNode,
@@ -672,6 +761,7 @@ module.exports = {
   dartViewerUrl,
   parseKoreanCount,
   parseParataxisHoldings,
+  parseSecOutstandingShares,
   parseSharpLinkHoldings,
   rssDate,
 };

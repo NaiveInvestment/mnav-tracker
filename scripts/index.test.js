@@ -40,7 +40,7 @@ function loadDashboard() {
   return { ...context.__dashboard, krTable };
 }
 
-test('Korean rows calculate and render market-cap mNAV', () => {
+test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () => {
   const { state, buildRows, renderKrTable, krTable } = loadDashboard();
   state.crypto = {
     BTC_KRW: { price: 100_000_000 },
@@ -59,9 +59,22 @@ test('Korean rows calculate and render market-cap mNAV', () => {
   const krRows = rows.filter(row => row.market === 'KR');
   assert.equal(krRows.length, 6);
   for (const row of krRows) assert.ok(Math.abs(row.equityMnav - 1) < 1e-12, row.key);
+  const bitmax = krRows.find(row => row.key === '377030');
+  const bitplanet = krRows.find(row => row.key === '049470');
+  const parataxisEth = krRows.find(row => row.key === '290560');
+  assert.ok(Math.abs(bitmax.enterpriseMnav - ((55_150_400_000 + 75_750_000_000 - 8_512_686_084) / 55_150_400_000)) < 1e-12);
+  assert.ok(Math.abs(bitplanet.enterpriseMnav - ((30_000_000_000 + 7_000_000_000 - 13_290_550_919) / 30_000_000_000)) < 1e-12);
+  assert.ok(Math.abs(parataxisEth.enterpriseMnav - ((31_347_000_000 + 6_000_000_000 - 2_253_892_824) / 31_347_000_000)) < 1e-12);
+  assert.equal(bitmax.potentialShares, 25_043_129);
+  assert.equal(bitplanet.potentialShares, 2_194_488);
+  assert.equal(parataxisEth.potentialShares, 4_242_950);
+  assert.ok(parataxisEth.mergerMnav > 0);
 
   renderKrTable(rows);
-  assert.match(krTable.innerHTML, /시총 mNAV/);
+  assert.match(krTable.innerHTML, /단순 mNAV/);
+  assert.match(krTable.innerHTML, /Enterprise mNAV/);
+  assert.match(krTable.innerHTML, /잠재 희석/);
+  assert.match(krTable.innerHTML, /합병가정/);
   assert.equal((krTable.innerHTML.match(/1\.00×/g) || []).length, 6);
   assert.equal((krTable.innerHTML.match(/공시 자동/g) || []).length, 5);
   assert.match(krTable.innerHTML, /별도 기준/);

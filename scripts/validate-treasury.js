@@ -57,6 +57,8 @@ function main() {
 
   validateHolding(payload.BMNR, 'ETH', 1000000, 20000000, 21, 'BMNR');
   validateHolding(payload.BMNR, 'BTC', 0, 100000, 21, 'BMNR');
+  check(Number.isSafeInteger(payload.BMNR?.shares) && payload.BMNR.shares >= 100000000, 'BMNR: basic shares invalid');
+  check(Number.isSafeInteger(payload.BMNR?.assumedDilutedShares) && payload.BMNR.assumedDilutedShares >= payload.BMNR.shares, 'BMNR: assumed diluted shares invalid');
   check(Number.isFinite(payload.BMNR?.capital?.cash) && payload.BMNR.capital.cash >= 0, 'BMNR: cash invalid');
 
   validateHolding(payload.SBET, 'ETH', 100000, 10000000, 75, 'SBET');
@@ -72,8 +74,16 @@ function main() {
   ]) {
     validateHolding(payload.KR?.[code], 'BTC', min, max, 160, code);
   }
+  for (const code of ['377030', '049470', '290560']) {
+    for (const field of ['debt', 'preferred', 'cash']) {
+      check(Number.isFinite(payload.KR?.[code]?.capital?.[field]) && payload.KR[code].capital[field] >= 0, `${code}: capital.${field} invalid`);
+    }
+    for (const field of ['cbShares', 'optionShares']) {
+      check(Number.isSafeInteger(payload.KR?.[code]?.dilution?.[field]) && payload.KR[code].dilution[field] >= 0, `${code}: dilution.${field} invalid`);
+    }
+  }
 
-  for (const key of ['strategy', 'bitmine', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330', 'dart-112040', 'dart-042420']) {
+  for (const key of ['strategy', 'bitmine', 'bitmine-shares', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330', 'dart-112040', 'dart-042420']) {
     const source = payload._meta?.sources?.[key];
     check(Boolean(source), `${key}: source attempt status missing`);
     if (source && source.status !== 'ok') warnings.push(`${key}: ${source.error || source.status}`);
@@ -84,6 +94,7 @@ function main() {
   validateHistory(payload, 'MSTR', 'shares', payload.MSTR.sharesAsOf, payload.MSTR.assumedDilutedShares);
   const bmnrHolding = payload.BMNR.holdings.find(item => item.asset === 'ETH');
   validateHistory(payload, 'BMNR', 'coins', bmnrHolding.asOf, bmnrHolding.coins);
+  validateHistory(payload, 'BMNR', 'shares', payload.BMNR.sharesAsOf, payload.BMNR.shares);
   const sbetHolding = payload.SBET.holdings[0];
   validateHistory(payload, 'SBET', 'coins', sbetHolding.asOf, sbetHolding.coins);
 

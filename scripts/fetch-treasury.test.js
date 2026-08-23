@@ -3,10 +3,12 @@ const assert = require('node:assert/strict');
 const {
   dartReportAsOf,
   parseDartHolding,
+  parseDartCapital,
   parseDartRss,
   parseKoreanCount,
   parseParataxisHoldings,
   parseSharpLinkHoldings,
+  parseSecOutstandingShares,
   rssDate,
 } = require('./fetch-treasury');
 const { parsePayload, renderPayload } = require('./treasury-utils');
@@ -31,6 +33,13 @@ test('Sharplink SEC disclosure parser reads date and aggregate ETH', () => {
   assert.deepEqual(
     parseSharpLinkHoldings('As of June 28, 2026, substantially all assets were staked. As of June 28, 2026, the Company’s aggregate ETH Holdings were 886,725 of which 632,719 were native ETH.'),
     { asOf: '2026-06-28', coins: 886725 },
+  );
+});
+
+test('SEC cover page parser reads basic shares and date', () => {
+  assert.deepEqual(
+    parseSecOutstandingShares('The number of shares outstanding of the registrant’s common stock as of July 9, 2026 was 603,226,394 shares.'),
+    { sharesAsOf: '2026-07-09', shares: 603226394 },
   );
 });
 
@@ -78,6 +87,30 @@ test('DART company parsers select each disclosed ending BTC balance', () => {
   assert.equal(parseDartHolding('288330', parataxis), 224.7149);
   assert.equal(parseDartHolding('112040', wemade), 215);
   assert.equal(parseDartHolding('042420', neowiz), 64);
+});
+
+test('DART capital parser keeps debt principal and potential shares separate', () => {
+  const bitplanet = [
+    table([
+      ['제 30 기 반기말', '제 29 기말'],
+      ['현금및현금성자산 (주4)', '13,290,550,919', '13,291,351,630'],
+      ['자산총계', '63,497,650,739', '71,539,903,191'],
+    ]),
+    table([
+      ['종류＼구분', '회차', '권면(전자등록)총액', '미상환사채'],
+      ['전환비율 (%)', '전환가액', '권면(전자등록)총액', '전환가능주식수'],
+      ['제16회', '16', '2,000', '4,365', '2,000', '458,190', '-'],
+      ['합 계', '-', '-', '7,000', '-', '-', '-', '7,000', '1,841,315', '-'],
+    ]),
+    table([
+      ['구 분', '주식매수선택권 수량', '가중평균행사가격'],
+      ['당반기말 잔여주', '353,173', '3,545'],
+    ]),
+  ].join('');
+  assert.deepEqual(parseDartCapital('049470', bitplanet), {
+    capital: { debt: 7000000000, preferred: 0, cash: 13290550919 },
+    dilution: { cbShares: 1841315, optionShares: 353173 },
+  });
 });
 
 test('DART report date uses the filing period or statement date', () => {
