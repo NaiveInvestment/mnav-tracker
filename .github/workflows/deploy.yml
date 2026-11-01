@@ -13,7 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  # The former pages group has a stuck run with no jobs that rejects cancellation.
+  group: pages-main-v2
   cancel-in-progress: true
 
 jobs:
