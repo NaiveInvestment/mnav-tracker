@@ -13,6 +13,34 @@ const {
 } = require('./fetch-treasury');
 const { parsePayload, renderPayload } = require('./treasury-utils');
 
+test('a blocked live source keeps the newer repository snapshot instead of the older deployed snapshot', async () => {
+  const { seedPayload, runSource } = require('./fetch-treasury');
+  const newer = {
+    MSTR: { shares: 422355000, sharesAsOf: '2026-10-25', holdings: [{ asset: 'BTC', coins: 848517, asOf: '2026-10-26' }] },
+    _history: { MSTR: { coins: [['2026-10-26', 848517]], shares: [['2026-10-25', 451934000]] } },
+    _meta: { sources: { strategy: { attemptedAt: '2026-11-01T12:00:00Z', lastSuccessAt: '2026-11-01T12:00:00Z' } } },
+  };
+  const older = {
+    MSTR: { shares: 397662000, sharesAsOf: '2026-08-23', holdings: [{ asset: 'BTC', coins: 840447, asOf: '2026-08-24' }] },
+    _history: { MSTR: { coins: [['2026-08-24', 840447]], shares: [] } },
+    _meta: { sources: { strategy: { attemptedAt: '2026-08-24T00:00:00Z', lastSuccessAt: '2026-08-24T00:00:00Z' } } },
+  };
+  for (const snapshots of [[newer, older], [older, newer]]) {
+    const payload = seedPayload(...snapshots);
+    const warn = console.warn;
+    console.warn = () => {};
+    try { await runSource(payload, 'strategy', async () => { throw new Error('HTTP 403'); }, () => assert.fail('failed source applied')); }
+    finally { console.warn = warn; }
+    assert.equal(payload.MSTR.holdings[0].coins, 848517);
+    assert.equal(payload.MSTR.holdings[0].asOf, '2026-10-26');
+    assert.equal(payload.MSTR.shares, 422355000);
+    assert.equal(payload._meta.sources.strategy.status, 'fallback');
+    assert.equal(payload._meta.sources.strategy.lastSuccessAt, '2026-11-01T12:00:00Z');
+    assert.ok(payload._history.MSTR.coins.some(point => point[0] === '2026-08-24'));
+    assert.ok(payload._history.MSTR.coins.some(point => point[0] === '2026-10-26'));
+  }
+});
+
 test('Korean 만-unit holdings are parsed exactly', () => {
   assert.equal(parseKoreanCount('1만449'), 10449);
   assert.equal(parseKoreanCount('9,399'), 9399);

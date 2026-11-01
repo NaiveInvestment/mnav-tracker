@@ -619,8 +619,12 @@ function carryHistory(payload, previous) {
 
 function carryPrevious(payload, previous) {
   if (!previous) return;
-  payload._meta.sources = Object.fromEntries(Object.entries(clone(previous._meta?.sources || {}))
-    .filter(([key]) => !key.startsWith('dart-') || Object.hasOwn(KR_DART_COMPANIES, key.slice(5))));
+  for (const [key, source] of Object.entries(previous._meta?.sources || {})) {
+    if (key.startsWith('dart-') && !Object.hasOwn(KR_DART_COMPANIES, key.slice(5))) continue;
+    const current = payload._meta.sources[key];
+    const attempted = value => value?.attemptedAt || value?.lastSuccessAt || '';
+    if (!current || attempted(source) >= attempted(current)) payload._meta.sources[key] = clone(source);
+  }
   carryHistory(payload, previous);
   if (latestHoldingDate(previous.PURR) >= latestHoldingDate(payload.PURR)) {
     payload.PURR = { ...payload.PURR, ...previous.PURR };
@@ -660,6 +664,12 @@ function carryPrevious(payload, previous) {
       payload.KR[code] = { ...payload.KR[code], ...previous.KR[code] };
     }
   }
+}
+
+function seedPayload(...snapshots) {
+  const payload = clone(BASELINE);
+  for (const snapshot of snapshots) carryPrevious(payload, snapshot);
+  return payload;
 }
 
 function requireCurrentOrNewer(current, candidate, label) {
@@ -703,9 +713,14 @@ async function main() {
     console.warn(`::warning title=Treasury previous payload::${String(error.message || error)}`);
   }
 
-  const payload = clone(BASELINE);
+  let deployed = null;
+  if (process.env.TREASURY_PREVIOUS_FILE) {
+    try { deployed = readPayload(process.env.TREASURY_PREVIOUS_FILE); }
+    catch (error) { console.warn(`Previous deployed payload: ${error.message}`); }
+  }
+  // Merge repository and deployed snapshots by date before trying live sources.
+  const payload = seedPayload(previous, deployed);
   payload.generatedAt = new Date().toISOString();
-  carryPrevious(payload, previous);
 
   await Promise.all([
     runSource(payload, 'hyperliquid', fetchHyperliquid, data => {
@@ -760,6 +775,8 @@ if (require.main === module) {
 
 module.exports = {
   BASELINE,
+  seedPayload,
+  runSource,
   fetchBitMine,
   fetchBitMineShares,
   fetchParataxis,

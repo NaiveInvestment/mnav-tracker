@@ -34,7 +34,7 @@ jobs:
         run: |
           node --test scripts/*.test.js
           if curl -fsSL https://naiveinvestment.github.io/mnav-tracker/treasury-latest.js -o /tmp/treasury-latest.js; then
-            cp /tmp/treasury-latest.js treasury-latest.js
+            export TREASURY_PREVIOUS_FILE=/tmp/treasury-latest.js
           else
             echo "::warning::Previous deployed treasury payload unavailable; using the verified repository fallback"
           fi
