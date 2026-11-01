@@ -42,6 +42,7 @@ function loadDashboard() {
 
 test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () => {
   const { state, buildRows, renderKrTable, krTable } = loadDashboard();
+  const parataxisValue = readPayload().KR['290560'].holdings[0].coins * 3_000_000;
   state.crypto = {
     BTC_KRW: { price: 100_000_000 },
     ETH_KRW: { price: 3_000_000 },
@@ -49,7 +50,7 @@ test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () 
   state.kr = {
     '377030': { price: 1_000, marketCap: 55_150_400_000, changePct: 0 },
     '049470': { price: 1_000, marketCap: 30_000_000_000, changePct: 0 },
-    '290560': { price: 1_000, marketCap: 31_347_000_000, changePct: 0 },
+    '290560': { price: 1_000, marketCap: parataxisValue, changePct: 0 },
     '288330': { price: 1_000, marketCap: 22_471_490_000, changePct: 0 },
   };
 
@@ -62,18 +63,36 @@ test('Korean rows keep simple mNAV, enterprise mNAV, and dilution separate', () 
   const parataxisEth = krRows.find(row => row.key === '290560');
   assert.ok(Math.abs(bitmax.enterpriseMnav - ((55_150_400_000 + 75_750_000_000 - 8_512_686_084) / 55_150_400_000)) < 1e-12);
   assert.ok(Math.abs(bitplanet.enterpriseMnav - ((30_000_000_000 + 7_000_000_000 - 13_290_550_919) / 30_000_000_000)) < 1e-12);
-  assert.ok(Math.abs(parataxisEth.enterpriseMnav - ((31_347_000_000 + 6_000_000_000 - 2_253_892_824) / 31_347_000_000)) < 1e-12);
+  assert.ok(Math.abs(parataxisEth.enterpriseMnav - ((parataxisValue + 6_000_000_000 - 2_253_892_824) / parataxisValue)) < 1e-12);
   assert.equal(bitmax.potentialShares, 25_043_129);
   assert.equal(bitplanet.potentialShares, 2_194_488);
   assert.equal(parataxisEth.potentialShares, 4_242_950);
-  assert.ok(parataxisEth.mergerMnav > 0);
+  assert.equal(parataxisEth.mergerMnav, undefined, 'withdrawn merger must not be valued');
 
   renderKrTable(rows);
   assert.match(krTable.innerHTML, /단순 mNAV/);
   assert.match(krTable.innerHTML, /Enterprise mNAV/);
   assert.match(krTable.innerHTML, /잠재 희석/);
-  assert.match(krTable.innerHTML, /합병가정/);
+  assert.doesNotMatch(krTable.innerHTML, /합병가정/);
   assert.equal((krTable.innerHTML.match(/1\.00×/g) || []).length, 4);
   assert.equal((krTable.innerHTML.match(/공시 자동/g) || []).length, 3);
   assert.doesNotMatch(krTable.innerHTML, /위메이드|네오위즈홀딩스/);
+});
+
+test('PURR uses HYPE and includes converted preferred shares once, with warrants separate', () => {
+  const { state, buildRows } = loadDashboard();
+  state.crypto = { HYPE_USD: { price: 50, supply: 300000000 } };
+  state.us = { PURR: { price: 10, prevClose: 8 } };
+  const row = buildRows().find(r => r.key === 'PURR');
+  const record = readPayload().PURR;
+  assert.equal(row.holdings[0].asset, 'HYPE');
+  assert.equal(row.shares, record.commonShares + record.preferredConversion);
+  assert.equal(row.coinValue, record.holdings[0].coins * 50);
+  assert.equal(row.mcap, 10 * record.shares);
+  assert.equal(row.mnav, (10 * record.shares + record.capital.debt - record.capital.cash) / row.coinValue);
+  const expectedDilution = record.warrants.reduce((sum, w) => sum + Math.max(0, 1 - w.strike / 10) * w.shares, 0);
+  assert.equal(row.dilutedShares, record.shares + expectedDilution);
+  assert.equal(row.perShareDiluted, row.coinValue / row.dilutedShares);
+  delete state.crypto.HYPE_USD;
+  assert.equal(buildRows().find(r => r.key === 'PURR').mnav, null, 'missing HYPE must not become zero or a BTC valuation');
 });

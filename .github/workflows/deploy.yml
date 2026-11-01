@@ -31,7 +31,7 @@ jobs:
         run: node scripts/fetch-quotes.js
       - name: Fetch and validate treasury disclosures
         run: |
-          node --test scripts/fetch-treasury.test.js scripts/index.test.js
+          node --test scripts/*.test.js
           if curl -fsSL https://naiveinvestment.github.io/mnav-tracker/treasury-latest.js -o /tmp/treasury-latest.js; then
             cp /tmp/treasury-latest.js treasury-latest.js
           else
@@ -44,7 +44,7 @@ jobs:
       - name: Stage site
         run: |
           mkdir -p _site
-          cp index.html quotes.json history.json treasury-history.js treasury-latest.js _site/
+          cp index.html hyperliquid-lib.js quotes.json history.json treasury-history.js treasury-latest.js _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

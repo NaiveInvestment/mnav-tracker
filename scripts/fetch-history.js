@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
-const SYMBOLS = { MSTR: 'MSTR', BMNR: 'BMNR', SBET: 'SBET', BTC: 'BTC-USD', ETH: 'ETH-USD' };
+const SYMBOLS = { MSTR: 'MSTR', BMNR: 'BMNR', SBET: 'SBET', PURR: 'PURR', BTC: 'BTC-USD', ETH: 'ETH-USD', HYPE: 'HYPE32196-USD' };
 const FROM = Math.floor(Date.parse('2020-08-01') / 1000);
 
 async function series(yahooSym) {

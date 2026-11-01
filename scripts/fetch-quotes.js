@@ -3,15 +3,17 @@
 const fs = require('fs');
 const path = require('path');
 const { usQuote, krQuote, fxQuote } = require('../quotes-lib');
+const { hypeQuote } = require('../hyperliquid-lib');
 
-const US_SYMBOLS = ['MSTR', 'BMNR', 'SBET'];
+const US_SYMBOLS = ['MSTR', 'BMNR', 'SBET', 'PURR'];
 const KR_CODES = ['377030', '049470', '290560', '288330'];
 
 async function main() {
-  const [usR, krR, fxR] = await Promise.all([
+  const [usR, krR, fxR, hype] = await Promise.all([
     Promise.allSettled(US_SYMBOLS.map(usQuote)),
     Promise.allSettled(KR_CODES.map(krQuote)),
     fxQuote(),
+    hypeQuote(),
   ]);
   const us = {};
   usR.forEach((r, i) => { if (r.status === 'fulfilled') us[US_SYMBOLS[i]] = r.value; });
@@ -19,11 +21,11 @@ async function main() {
   krR.forEach((r, i) => { if (r.status === 'fulfilled') kr[KR_CODES[i]] = r.value; });
 
   const okUs = Object.keys(us).length, okKr = Object.keys(kr).length;
-  if (okUs === 0 || okKr === 0) {
+  if (okUs === 0 || okKr === 0 || !us.PURR) {
     console.error(`quote fetch failed: us=${okUs}/${US_SYMBOLS.length} kr=${okKr}/${KR_CODES.length}`);
     process.exit(1); // fail the workflow → previous deployment stays live
   }
-  const out = { asOf: new Date().toISOString(), fx: fxR, us, kr };
+  const out = { asOf: new Date().toISOString(), fx: fxR, us, kr, crypto: { HYPE_USD: hype } };
   fs.writeFileSync(path.join(__dirname, '..', 'quotes.json'), JSON.stringify(out));
   console.log(`quotes.json written: us=${okUs} kr=${okKr} usdkrw=${fxR.usdkrw}`);
 }

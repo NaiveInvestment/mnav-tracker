@@ -19,6 +19,7 @@ test('Korean 만-unit holdings are parsed exactly', () => {
 });
 
 test('Parataxis parser takes the new total, not the transaction amount', () => {
+  assert.equal(parseParataxisHoldings('이번 매입분인 1,279.67개 ETH가 추가되어 이더리움 총 보유량은 11,729.615505개 ETH가 된다.'), 11729.615505);
   assert.equal(
     parseParataxisHoldings('이더리움 1050개를 추가 매입하며 총보유량이 1만449개로 늘어났다고 밝혔다.'),
     10449,
@@ -27,6 +28,15 @@ test('Parataxis parser takes the new total, not the transaction amount', () => {
     parseParataxisHoldings('이더리움 총 보유량은 기존 10,449개에서 9,000개로 감소했다.'),
     9000,
   );
+});
+
+test('Sharplink dashboard selects the latest dated total rather than an earlier filing', () => {
+  const { parseSharpLinkDashboard } = require('./fetch-treasury');
+  assert.deepEqual(parseSharpLinkDashboard({ total_eth_holdings: [
+    { Date: 'October 26, 2026', 'Total ETH Holdings': 894431 },
+    { Date: 'June 28, 2026', 'Total ETH Holdings': 886725 },
+  ] }), { asset: 'ETH', coins: 894431, asOf: '2026-10-26' });
+  assert.throws(() => parseSharpLinkDashboard({}));
 });
 
 test('Sharplink SEC disclosure parser reads date and aggregate ETH', () => {

@@ -10,14 +10,15 @@
   --surface:     #fcfcfb;
   --ink:         #0b0b0b;
   --ink-2:       #52514e;
-  --ink-muted:   #898781;
+  --ink-muted:   #696761;
   --grid:        #e1e0d9;
   --baseline:    #c3c2b7;
   --border:      rgba(11,11,11,0.10);
-  --series-1:    #2a78d6;
+  --series-1:    #236dc3;
   --series-2:    #1baf7a;
   --up:          #d03b3b;   /* KR convention: red = up */
-  --down:        #2a78d6;   /* blue = down */
+  --down:        #236dc3;   /* blue = down */
+  --status-ink:  #08704f;
   --neutral-bg:  #f0efec;
 }
 @media (prefers-color-scheme: dark) {
@@ -35,6 +36,7 @@
     --up:          #e66767;
     --down:        #3987e5;
     --neutral-bg:  #383835;
+    --status-ink:  #6ee7b7;
   }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -137,14 +139,14 @@ h1 small { font-weight: 400; color: var(--ink-2); font-size: 13px; margin-left: 
   display: inline-block; font-size: 10.5px; font-weight: 500; color: var(--ink-2);
   background: var(--neutral-bg); border-radius: 4px; padding: 1px 6px;
 }
-.badge.auto { color: var(--series-2); }
+.badge.auto { color: var(--status-ink); }
 .badge.stale { color: var(--up); }
 .crow {
   display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
   padding: 5.5px 16px; font-size: 13px;
 }
-.crow .k { color: var(--ink-2); white-space: nowrap; }
-.crow .k i { font-style: normal; font-size: 11px; color: var(--ink-muted); margin-left: 4px; }
+.crow .k { color: var(--ink-2); white-space: normal; min-width: 0; }
+.crow .k i { display: block; font-style: normal; font-size: 11px; color: var(--ink-muted); margin-left: 4px; }
 .crow .v { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
 .crow.hl { background: color-mix(in srgb, var(--series-1) 7%, transparent); }
 .crow.hl .v { font-weight: 700; }
@@ -222,37 +224,37 @@ footer a { color: var(--series-1); }
   <div class="tiles" id="tiles"></div>
 
   <div class="section-title">기업별 상세</div>
-  <div class="section-desc">Enterprise mNAV는 기본주식 시총에 부채·우선주·현금을 조정합니다. 전환사채·옵션의 잠재 희석은 별도로 표시해 부채와 이중 계산하지 않습니다.</div>
+  <div class="section-desc">Enterprise mNAV는 주식 시총에 부채, 우선주, 현금을 조정합니다. 전환사채, 옵션의 잠재 희석은 별도로 표시해 부채와 이중 계산하지 않습니다.</div>
   <div class="ccards" id="ccards"></div>
 
-  <div class="section-title">코인 보유량·주식수 복기</div>
-  <div class="section-desc">MSTR은 회사가 공시한 가정 완전희석주식수, BMNR·SBET은 기본주식수 시계열입니다. 과거 자본구조가 없는 구간은 mNAV를 만들지 않습니다.</div>
+  <div class="section-title">코인 보유량, 주식수 복기</div>
+  <div class="section-desc">MSTR은 회사가 공시한 가정 완전희석주식수, BMNR, SBET는 기본주식수, PURR는 보통주와 전환우선주 합산 시계열입니다. 과거 자본구조가 없는 구간은 mNAV를 만들지 않습니다.</div>
   <div class="tabs" id="htabs"></div>
   <div class="hgrid" id="hgrid"></div>
 
   <details class="krsec">
-    <summary>국내 DAT mNAV·잠재 희석 — 비트맥스 · 비트플래닛 · 파라택시스</summary>
+    <summary>국내 DAT mNAV, 잠재 희석 — 비트맥스, 비트플래닛, 파라택시스</summary>
     <div class="krbody">
       <table class="krt" id="krt"></table>
-      <div class="desc" style="margin:10px 2px 0">단순 mNAV = 시가총액 ÷ 코인가치. Enterprise mNAV = (기본주식 시총 + 부채 원금 + 우선주 − 현금) ÷ 코인가치. 잠재주식은 별도 표기하며 전환사채 부채와 동시에 분자에 더하지 않습니다. 파라택시스이더리움 합병가정은 발표된 신주 수와 양사 코인을 단순 합산한 참고치입니다.</div>
+      <div class="desc" style="margin:10px 2px 0">단순 mNAV = 시가총액 ÷ 코인가치. Enterprise mNAV = (기본주식 시총 + 부채 원금 + 우선주 − 현금) ÷ 코인가치. 잠재주식은 별도 표기하며 전환사채 부채와 동시에 분자에 더하지 않습니다. 파라택시스 합병은 2026-10-06 철회되어 합병가정 수치를 표시하지 않습니다.</div>
     </div>
   </details>
 
   <div class="card">
     <h2>현재 Enterprise mNAV 비교</h2>
-    <div class="desc">1.0×는 기업가치가 보유 코인 가치와 같다는 뜻입니다. 주가·코인 가격은 실시간, 자본구조는 각 기준일 공시값입니다.</div>
+    <div class="desc">1.0×는 기업가치가 보유 코인 가치와 같다는 뜻입니다. 주가, 코인 가격은 실시간, 자본구조는 각 기준일 공시값입니다.</div>
     <div class="chart" id="chart"></div>
   </div>
 
   <footer>
     <b>참고</b><br>
-    · 산식: <b>Enterprise mNAV = (기본주식 시총 + 이자부채 원금 + 영구우선주 명목액 − 현금) ÷ 코인 준비자산</b>. <a href="https://www.strategy.com/notes" target="_blank" rel="noreferrer">Strategy 공식 정의</a>와 동일한 기준.<br>
-    · 자동 갱신: MSTR의 BTC·기본/완전희석주식수·부채·우선주·현금, BMNR의 ETH·BTC·현금·기본주식수, SBET의 ETH, 파라택시스이더리움의 ETH를 공식 원문에서 확인. 국내 정기공시에서는 보유 코인과 함께 현금·부채 원금·전환가능주식·옵션을 갱신. 일시적 조회 실패 시 직전 정상값을 쓰되 기준일이 한도를 넘으면 배포 검증이 실패하고 화면에 ‘확인 필요’를 표시.<br>
-    · 주식수 기준: 현재 Enterprise mNAV는 모두 기본주식수 기준. MSTR의 가정 완전희석주식수는 주당 코인 가치와 BTC Yield용 보조지표이며 mNAV에는 미사용. BMNR 완전희석 근사치는 기본주식수와 최근 10-Q 잠재증권의 기준일이 달라 참고용.<br>
-    · 지분율은 유통량 근사치 기준: BTC 1,990만 · ETH 1억 2,070만.<br>
-    · 공식 원문: MSTR <a href="https://www.strategy.com/assets" target="_blank" rel="noreferrer">자산·자본구조</a>/<a href="https://www.strategy.com/shares" target="_blank" rel="noreferrer">주식수</a> · BMNR <a href="https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./" target="_blank" rel="noreferrer">회사 발표</a> · SBET <a href="https://www.sec.gov/edgar/browse/?CIK=1981535" target="_blank" rel="noreferrer">SEC 공시</a> · 파라택시스이더리움 <a href="https://www.newswire.co.kr/?md=A10&amp;act=article&amp;no=50194" target="_blank" rel="noreferrer">회사 뉴스룸</a>. 각 보유량 기준일을 누르면 해당 근거가 열림.<br>
-    · 국내 표는 코인 재무전략이 기업가치의 핵심인 DAT와 합병 참고대상만 포함. 단순 코인 보유 기업은 사업가치가 섞여 mNAV 비교가 왜곡되므로 제외. 전환 시 주식수 증가와 부채 소멸이 동시에 일어나므로 현재 부채와 완전희석 시총을 한 산식에 함께 넣지 않음.<br>
-    · 시세: 업비트·바이낸스(코인) · 토스증권(국내·미국 주가, 미국 주간거래 반영; 장애 시 야후·네이버 폴백) · 네이버(환율) · 야후(과거 일봉). 실시간 가격을 쓰므로 회사가 종가로 공시하는 mNAV와 장중 차이가 날 수 있음. 투자 판단의 근거가 아닌 참고용.
+    산식: <b>Enterprise mNAV = (주식 시총 + 이자부채 원금 + 영구우선주 명목액 − 현금) ÷ 코인 준비자산</b>. <a href="https://www.strategy.com/notes" target="_blank" rel="noreferrer">Strategy 공식 정의</a>와 동일한 기준.<br>
+    자동 갱신: MSTR의 BTC, 기본/완전희석주식수, 부채, 우선주, 현금, BMNR의 ETH, BTC, 현금, 기본주식수, SBET의 ETH, 파라택시스이더리움의 ETH, PURR의 HYPE, 주식수, 현금을 공식 원문에서 확인. PURR 주간 수치는 게시일보다 1주 전 기준이며 화면에는 실제 기준일을 표시. 국내 정기공시에서는 보유 코인과 함께 현금, 부채 원금, 전환가능주식, 옵션을 갱신. 일시적 조회 실패 시 직전 정상값을 쓰되 기준일이 한도를 넘으면 배포 검증이 실패하고 화면에 ‘확인 필요’를 표시.<br>
+    주식수 기준: MSTR, BMNR, SBET의 Enterprise mNAV는 기본주식수 기준. PURR는 보통주와 전환우선주 환산주식수 합산, 워런트는 희석 보조지표로 분리. MSTR의 가정 완전희석주식수는 주당 코인 가치와 BTC Yield용 보조지표이며 mNAV에는 미사용. BMNR 완전희석 근사치는 기본주식수와 최근 10-Q 잠재증권의 기준일이 달라 참고용.<br>
+    지분율: 유통량 근사치 기준, BTC 1,990만, ETH 1억 2,070만. HYPE는 Hyperliquid 현물 API의 유통량.<br>
+    공식 원문: MSTR <a href="https://www.strategy.com/assets" target="_blank" rel="noreferrer">자산, 자본구조</a>/<a href="https://www.strategy.com/shares" target="_blank" rel="noreferrer">주식수</a>, BMNR <a href="https://www.prnewswire.com/news/bitmine-immersion-technologies%2C-inc./" target="_blank" rel="noreferrer">회사 발표</a>, SBET <a href="https://www.sec.gov/edgar/browse/?CIK=1981535" target="_blank" rel="noreferrer">SEC 공시</a>, 파라택시스이더리움 <a href="https://www.newswire.co.kr/?md=A10&amp;act=article&amp;no=50194" target="_blank" rel="noreferrer">회사 뉴스룸</a>. PURR <a href="https://hypestrat.xyz/dashboard" target="_blank" rel="noreferrer">공식 대시보드</a>, <a href="https://www.sec.gov/Archives/edgar/data/2078856/000119312526370281/purr-20260630.htm" target="_blank" rel="noreferrer">10-K</a>. PURR의 전환우선주는 주식수에 포함하며 명목액을 별도로 가산하지 않음. 발행사 Adjusted NAV와 달리 이연법인세는 미반영. 각 보유량 기준일을 누르면 해당 근거가 열림.<br>
+    국내 표: 코인 재무전략이 기업가치의 핵심인 DAT만 포함. 단순 코인 보유 기업은 사업가치가 섞여 mNAV 비교가 왜곡되므로 제외. 전환 시 주식수 증가와 부채 소멸이 동시에 일어나므로 현재 부채와 완전희석 시총을 한 산식에 함께 넣지 않음.<br>
+    시세: 업비트, 바이낸스(BTC, ETH), Hyperliquid(HYPE/USDC 현물, USDC ≈ USD), 토스증권(국내, 미국 주가, 미국 주간거래 반영; 장애 시 야후, 네이버 폴백), 네이버(환율), 야후(과거 일봉). 실시간 가격을 쓰므로 회사가 종가로 공시하는 mNAV와 장중 차이가 날 수 있음. 투자 판단의 근거가 아닌 참고용.
   </footer>
 </div>
 
@@ -260,12 +262,14 @@ footer a { color: var(--series-1); }
 
 <script src="treasury-history.js"></script>
 <script src="treasury-latest.js"></script>
+<script src="hyperliquid-lib.js"></script>
 <script>
 /* =============== CONFIG — 자동 갱신값과 검증된 공시 폴백 =============== */
 const TREASURY_LATEST = globalThis.LATEST_TREASURY || {};
 const MSTR_LATEST = TREASURY_LATEST.MSTR;
 const BMNR_LATEST = TREASURY_LATEST.BMNR;
 const SBET_LATEST = TREASURY_LATEST.SBET;
+const PURR_LATEST = TREASURY_LATEST.PURR;
 const KR_LATEST = TREASURY_LATEST.KR || {};
 const SUPPLY = { BTC: 19900000, ETH: BMNR_LATEST?.ethSupply || 120700000 };  // 지분율 계산용 유통량 근사
 const SBET_ESTIMATED_CASH = Math.round(16875000 + 75000000 * 0.98 - 16110400 - 2132773 * 4.69);
@@ -274,20 +278,28 @@ const US_COMPANIES = [
     dilutedShares: MSTR_LATEST?.assumedDilutedShares ?? 406099000, dilutedAsOf: MSTR_LATEST?.sharesAsOf || '2026-07-12', dilutedLabel: '가정 완전희석주식수',
     holdings: MSTR_LATEST?.holdings || [{ asset: 'BTC', coins: 843775, asOf: '2026-07-13' }],
     capital: { debt: MSTR_LATEST?.capital?.debt ?? 6754000000, preferred: MSTR_LATEST?.capital?.preferred ?? 15464458400, cash: MSTR_LATEST?.capital?.cash ?? 3000000000,
-      asOf: `부채·우선주·현금 ${MSTR_LATEST?.capital?.asOf || '2026-07-13'}` },
+      asOf: `부채, 우선주, 현금 ${MSTR_LATEST?.capital?.asOf || '2026-07-13'}` },
     source: MSTR_LATEST?.source || 'https://www.strategy.com/assets', sharesSource: MSTR_LATEST?.sharesSource || 'https://www.strategy.com/shares', updateMode: 'auto', freshnessDays: 21 },
   { ticker: 'BMNR', name: 'BitMine', shares: BMNR_LATEST?.shares ?? 603226394, sharesAsOf: BMNR_LATEST?.sharesAsOf || '2026-07-09',
-    dilutedShares: BMNR_LATEST?.assumedDilutedShares ?? 622491223, dilutedAsOf: BMNR_LATEST?.dilutedAsOf || '잠재증권 2026-05-31 · 기본주식 2026-07-09', dilutedLabel: '완전희석 근사치',
+    dilutedShares: BMNR_LATEST?.assumedDilutedShares ?? 622491223, dilutedAsOf: BMNR_LATEST?.dilutedAsOf || '잠재증권 2026-05-31, 기본주식 2026-07-09', dilutedLabel: '완전희석 근사치',
     holdings: BMNR_LATEST?.holdings || [{ asset: 'ETH', coins: 5770038, asOf: '2026-07-12' }, { asset: 'BTC', coins: 206, asOf: '2026-07-12' }],
     capital: { debt: BMNR_LATEST?.capital?.debt ?? 0, preferred: BMNR_LATEST?.capital?.preferred ?? 350000000, cash: BMNR_LATEST?.capital?.cash ?? 482000000,
-      asOf: `우선주 ${BMNR_LATEST?.capital?.preferredAsOf || '2026-06-10'} · 현금 ${BMNR_LATEST?.capital?.cashAsOf || '2026-07-12'} · 이자부채 $0 가정` },
+      asOf: `우선주 ${BMNR_LATEST?.capital?.preferredAsOf || '2026-06-10'}, 현금 ${BMNR_LATEST?.capital?.cashAsOf || '2026-07-12'}, 이자부채 $0 가정` },
     source: BMNR_LATEST?.source || 'https://www.prnewswire.com/news-releases/bitmine-immersion-technologies-bmnr-announces-eth-holdings-reach-5-77-million-tokens-and-total-crypto-and-total-cash-holdings-of-11-3-billion-302823523.html', sharesSource: BMNR_LATEST?.sharesSource || 'https://www.sec.gov/Archives/edgar/data/1829311/000162828026048157/bmnr-20260531.htm', updateMode: 'auto-holdings-cash', freshnessDays: 21 },
   { ticker: 'SBET', name: 'Sharplink', shares: SBET_LATEST?.shares ?? 205091990, sharesAsOf: SBET_LATEST?.sharesAsOf || '2026-06-26',
     holdings: SBET_LATEST?.holdings || [{ asset: 'ETH', coins: 886725, asOf: '2026-06-28' }],
     capital: { debt: SBET_LATEST?.capital?.debt ?? 0, preferred: SBET_LATEST?.capital?.preferred ?? 0, cash: SBET_LATEST?.capital?.cash ?? SBET_ESTIMATED_CASH,
-      asOf: `현금 ${SBET_LATEST?.capital?.cashAsOf || '2026-06-28'} 추정 · 이자부채·우선주 $0`, estimated: true },
+      asOf: `현금 ${SBET_LATEST?.capital?.cashAsOf || '2026-06-28'} 추정, 이자부채, 우선주 $0`, estimated: true },
     source: SBET_LATEST?.source || 'https://www.sec.gov/Archives/edgar/data/1981535/000149315226031202/form8-k.htm', sharesSource: SBET_LATEST?.sharesSource, updateMode: 'auto-holdings', freshnessDays: 75 },
 ];
+US_COMPANIES.push({ ticker: 'PURR', name: 'Hyperliquid Strategies',
+  shares: PURR_LATEST?.shares ?? 300770000, sharesAsOf: PURR_LATEST?.sharesAsOf || '2026-10-22', sharesLabel: '보통주+전환우선주',
+  commonShares: PURR_LATEST?.commonShares ?? 274182353, preferredConversion: PURR_LATEST?.preferredConversion ?? 26587647,
+  warrants: PURR_LATEST?.warrants || [{ shares: 640000, strike: 6.25 }, { shares: 600000, strike: 6.25 }, { shares: 9130000, strike: 9.38 }, { shares: 9130000, strike: 12.5 }, { shares: 9130000, strike: 18.75 }],
+  holdings: PURR_LATEST?.holdings || [{ asset: 'HYPE', coins: 38850000, asOf: '2026-10-22' }],
+  capital: { debt: PURR_LATEST?.capital?.debt ?? 0, preferred: 0, cash: PURR_LATEST?.capital?.cash ?? 245350000,
+    asOf: `현금 ${PURR_LATEST?.capital?.cashAsOf || '2026-10-22'}, 부채 ${PURR_LATEST?.capital?.debtAsOf || '2026-06-30'} 공시` },
+  mnavBasis: '전환우선주 포함', source: PURR_LATEST?.source || 'https://hypestrat.xyz/dashboard', sharesSource: 'https://hypestrat.xyz/dashboard', updateMode: 'auto', freshnessDays: 28 });
 const KR_COMPANIES = [
   { code: '377030', name: '비트맥스', holdings: KR_LATEST['377030']?.holdings || [{ asset: 'BTC', coins: 551.504, asOf: '2026-06-30' }],
     capital: KR_LATEST['377030']?.capital || { debt: 75750000000, preferred: 0, cash: 8512686084, asOf: '2026-06-30' }, dilution: KR_LATEST['377030']?.dilution || { cbShares: 25043129, optionShares: 0, asOf: '2026-06-30' },
@@ -297,7 +309,6 @@ const KR_COMPANIES = [
     source: KR_LATEST['049470']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814003703', updateMode: 'auto-quarterly', freshnessDays: 160 },
   { code: '290560', name: '파라택시스이더리움', holdings: KR_LATEST['290560']?.holdings || [{ asset: 'ETH', coins: 10449, asOf: '2026-07-08' }],
     capital: KR_LATEST['290560']?.capital || { debt: 6000000000, preferred: 0, cash: 2253892824, asOf: '2026-06-30' }, dilution: KR_LATEST['290560']?.dilution || { cbShares: 3896100, optionShares: 346850, asOf: '2026-06-30' },
-    merger: { partnerCode: '288330', newShares: 29773483, source: 'https://kind.krx.co.kr/external/2026/07/20/000767/20260720001773/11344.htm' },
     source: KR_LATEST['290560']?.source || 'https://www.newswire.co.kr/newsRead.php?no=1038133', updateMode: 'auto', freshnessDays: 75 },
   { code: '288330', name: '파라택시스코리아', holdings: KR_LATEST['288330']?.holdings || [{ asset: 'BTC', coins: 224.7149, asOf: '2026-06-30' }],
     source: KR_LATEST['288330']?.source || 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260814004297', updateMode: 'auto-quarterly', freshnessDays: 160, halted: true },
@@ -399,10 +410,14 @@ async function fetchAll() {
       for (const t of v) state.crypto[t.symbol.replace('USDT', '') + '_USD'] = { price: Number(t.price) };
     })()],
   ];
+  tasks.push(['HYPE 현물', HYPERLIQUID.hypeQuote().then(q => { state.crypto.HYPE_USD = q; })]);
   if (IS_STATIC) {
     // 5분 단위 캐시버스터 — Pages CDN 캐시와 Actions 갱신 주기에 맞춤
-    tasks.push(['주가·환율', getJson('quotes.json?_=' + Math.floor(Date.now() / 300000)).then(q => {
+    tasks.push(['주가, 환율', getJson('quotes.json?_=' + Math.floor(Date.now() / 300000)).then(q => {
       state.us = q.us; state.kr = q.kr; state.fx = q.fx; state.quotesAsOf = q.asOf;
+      // Deployed quote is a fallback; keep a newer live spot quote.
+      const hype = q.crypto?.HYPE_USD;
+      if (hype && (!state.crypto.HYPE_USD || Date.parse(hype.asOf) > Date.parse(state.crypto.HYPE_USD.asOf || 0))) state.crypto.HYPE_USD = hype;
     })]);
   } else {
     tasks.push(['환율', getJson('/api/fx').then(v => { state.fx = v; })]);
@@ -445,6 +460,9 @@ function buildRows() {
     const q = state.us[c.ticker];
     const price = q?.price;
     const shares = c.shares;
+    const dilutedShares = c.warrants && price > 0
+      ? shares + c.warrants.reduce((sum, w) => sum + Math.max(0, 1 - w.strike / price) * w.shares, 0)
+      : c.dilutedShares;
     const holdings = c.holdings.map(h => {
       const p = state.crypto[h.asset + '_USD']?.price;
       return { ...h, coinPrice: p, value: p != null ? h.coins * p : null };
@@ -456,14 +474,15 @@ function buildRows() {
       : null;
     rows.push({
       key: c.ticker, name: c.name, tick2: c.ticker, market: 'US', cur: 'USD',
-      holdings, shares, sharesLabel: '기본주식수', sharesAsOf: c.sharesAsOf,
-      dilutedShares: c.dilutedShares, dilutedAsOf: c.dilutedAsOf, dilutedLabel: c.dilutedLabel,
+      holdings, shares, sharesLabel: c.sharesLabel || '기본주식수', sharesAsOf: c.sharesAsOf,
+      commonShares: c.commonShares, preferredConversion: c.preferredConversion, mnavBasis: c.mnavBasis || '기본주식 기준',
+      dilutedShares, dilutedAsOf: c.dilutedAsOf || c.sharesAsOf, dilutedLabel: c.warrants ? '워런트 희석 환산주식수' : c.dilutedLabel,
       capital: c.capital, coinValue: cv, mcap, enterpriseValue,
       source: c.source, sharesSource: c.sharesSource, updateMode: c.updateMode,
       stale: c.holdings.some(h => holdingIsStale(h.asOf, c.freshnessDays)),
       mnav: enterpriseValue != null && cv ? enterpriseValue / cv : null,
       perShare: cv != null ? cv / shares : null,
-      perShareDiluted: cv != null && c.dilutedShares ? cv / c.dilutedShares : null,
+      perShareDiluted: cv != null && dilutedShares ? cv / dilutedShares : null,
       price, priceStr: fmt.usd(price),
       changePct: q?.price != null && q?.prevClose ? (q.price / q.prevClose - 1) * 100 : null,
       coinValueKrw: cv != null && fxr ? cv * fxr : null,
@@ -521,8 +540,11 @@ function renderTiles() {
   if (btcK && btcU && fx?.usdkrw) kimchi = (btcK.price / (btcU.price * fx.usdkrw) - 1) * 100;
   const krwSrc = btcK?.src || '업비트';
   const tiles = [
-    { label: '비트코인', value: fmt.krw(btcK?.price), value2: btcU ? fmt.usd(btcU.price, 0) : '', delta: fmt.deltaHtml(btcK?.changePct), sub: krwSrc + ' · 바이낸스' },
-    { label: '이더리움', value: fmt.krw(ethK?.price), value2: ethU ? fmt.usd(ethU.price, 0) : '', delta: fmt.deltaHtml(ethK?.changePct), sub: krwSrc + ' · 바이낸스' },
+    { label: '비트코인', value: fmt.krw(btcK?.price), value2: btcU ? fmt.usd(btcU.price, 0) : '', delta: fmt.deltaHtml(btcK?.changePct), sub: krwSrc + ', 바이낸스' },
+    { label: '이더리움', value: fmt.krw(ethK?.price), value2: ethU ? fmt.usd(ethU.price, 0) : '', delta: fmt.deltaHtml(ethK?.changePct), sub: krwSrc + ', 바이낸스' },
+    { label: '하이퍼리퀴드 (HYPE)', value: fmt.usd(state.crypto.HYPE_USD?.price),
+      value2: state.crypto.HYPE_USD && fx?.usdkrw ? fmt.krw(state.crypto.HYPE_USD.price * fx.usdkrw) + ' 환산' : '',
+      delta: fmt.deltaHtml(state.crypto.HYPE_USD?.changePct), sub: 'Hyperliquid 현물, USDC ≈ USD' },
     { label: 'USD/KRW', value: fx ? fx.usdkrw.toLocaleString('ko-KR', { minimumFractionDigits: 2 }) : '—', delta: fmt.deltaHtml(fx?.changePct), sub: '하나은행 고시' },
     { label: '김치 프리미엄 (BTC)', value: kimchi == null ? '—' : (kimchi > 0 ? '+' : '') + kimchi.toFixed(1) + '%', delta: '', sub: '업비트 ÷ (바이낸스 × 환율)' },
   ];
@@ -531,7 +553,7 @@ function renderTiles() {
       <div class="label">${t.label}</div>
       <div class="value">${t.value}</div>
       ${t.value2 ? `<div class="value2">${t.value2}</div>` : ''}
-      <div class="sub">${t.delta}${t.delta && t.sub ? ' · ' : ''}${t.sub}</div>
+      <div class="sub">${t.delta}${t.delta && t.sub ? ', ' : ''}${t.sub}</div>
     </div>`).join('');
 }
 
@@ -551,7 +573,7 @@ function renderChart(rows) {
   }
   const rowsHtml = data.map(r => `
     <div class="chart-row" data-key="${r.key}">
-      <div class="cname">${r.name}</div>
+      <div class="cname">${r.key === 'PURR' ? 'PURR' : r.name}</div>
       <div class="track">
         <div class="chart-grid">${grid}</div>
         <div class="bar" style="width:${pct(r.mnav)}%"></div>
@@ -575,14 +597,14 @@ function renderCards(rows) {
     const sourceUrl = safeSourceUrl(r.source);
     const sharesSourceUrl = safeSourceUrl(r.sharesSource);
     const modeText = r.updateMode === 'auto' ? '자동'
-      : r.updateMode === 'auto-holdings-cash' ? '보유량·현금 자동'
+      : r.updateMode === 'auto-holdings-cash' ? '보유량, 현금 자동'
       : r.updateMode === 'auto-holdings' ? '보유량 자동' : '';
     const modeBadge = modeText ? `<span class="badge auto">${modeText}</span>` : '';
     const staleBadge = r.stale ? '<span class="badge stale">확인 필요</span>' : '';
     const holdingsHtml = r.holdings.map(h => `
       <div class="crow hl"><span class="k">보유 <b>${h.asset}</b><i>${sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noreferrer">${h.asOf}</a>` : h.asOf} 기준</i></span><span class="v">${h.coins.toLocaleString('ko-KR')}</span></div>
-      <div class="crow"><span class="k">${h.asset} 지분율<i>유통량 대비</i></span><span class="v">${fmt.supplyPct(h.coins / SUPPLY[h.asset] * 100)}</span></div>
-      <div class="crow"><span class="k">${h.asset} 가격</span><span class="v">${unit(r, h.coinPrice, 0)}</span></div>
+      <div class="crow"><span class="k">${h.asset} 지분율<i>유통량 대비</i></span><span class="v">${fmt.supplyPct(h.coins / (h.asset === 'HYPE' ? state.crypto.HYPE_USD?.supply : SUPPLY[h.asset]) * 100)}</span></div>
+      <div class="crow"><span class="k">${h.asset} 가격</span><span class="v">${unit(r, h.coinPrice, h.asset === 'HYPE' ? 2 : 0)}</span></div>
       <div class="crow"><span class="k">보유 ${h.asset} 가치</span><span class="v">${money(r, h.value)}</span></div>
       <div class="csep"></div>`).join('');
     return `
@@ -592,14 +614,15 @@ function renderCards(rows) {
         <span class="mkt">NASDAQ/NYSE</span>
       </div>
       <div class="crow"><span class="k">${r.sharesLabel}${r.sharesAsOf ? `<i>${sharesSourceUrl ? `<a href="${sharesSourceUrl}" target="_blank" rel="noreferrer">${r.sharesAsOf}</a>` : r.sharesAsOf} 기준</i>` : ''}</span><span class="v">${fmt.int(r.shares)}</span></div>
-      ${r.dilutedShares ? `<div class="crow"><span class="k">${r.dilutedLabel}<i>${r.dilutedAsOf || r.sharesAsOf} 기준 · mNAV 미사용</i></span><span class="v">${fmt.int(r.dilutedShares)}</span></div>` : ''}
+      ${r.preferredConversion != null ? `<div class="crow"><span class="k">보통주 / 전환우선주<i>발행사 반올림 공시에서 환산</i></span><span class="v">${(r.commonShares / 1e6).toFixed(2)}M / ${(r.preferredConversion / 1e6).toFixed(2)}M</span></div>` : ''}
+      ${r.dilutedShares ? `<div class="crow"><span class="k">${r.dilutedLabel}<i>${r.dilutedAsOf || r.sharesAsOf} 기준, mNAV 미사용</i></span><span class="v">${fmt.int(r.dilutedShares)}</span></div>` : ''}
       <div class="csep"></div>
       ${holdingsHtml}
       <div class="crow"><span class="k">보유 코인 가치 합계</span><span class="v">${money(r, r.coinValue)}</span></div>
-      <div class="crow hl"><span class="k">주당 코인 가치 · 기본</span><span class="v">${unit(r, r.perShare, 2)}</span></div>
-      ${r.perShareDiluted != null ? `<div class="crow"><span class="k">주당 코인 가치 · 희석<i>보조지표</i></span><span class="v">${unit(r, r.perShareDiluted, 2)}</span></div>` : ''}
+      <div class="crow hl"><span class="k">주당 코인 가치, 기본</span><span class="v">${unit(r, r.perShare, 2)}</span></div>
+      ${r.perShareDiluted != null ? `<div class="crow"><span class="k">주당 코인 가치, 희석<i>보조지표</i></span><span class="v">${unit(r, r.perShareDiluted, 2)}</span></div>` : ''}
       <div class="csep"></div>
-      <div class="crow"><span class="k">기본주식 시가총액</span><span class="v">${money(r, r.mcap)}</span></div>
+      <div class="crow"><span class="k">${r.preferredConversion != null ? '전환우선주 포함 시총' : '기본주식 시가총액'}</span><span class="v">${money(r, r.mcap)}</span></div>
       <div class="crow"><span class="k">이자부채 원금</span><span class="v">${money(r, r.capital.debt)}</span></div>
       <div class="crow"><span class="k">영구우선주 명목액</span><span class="v">${money(r, r.capital.preferred)}</span></div>
       <div class="crow"><span class="k">차감 현금${r.capital.estimated ? ' <span class="badge">추정</span>' : ''}</span><span class="v">${money(r, r.capital.cash)}</span></div>
@@ -607,7 +630,7 @@ function renderCards(rows) {
       <div class="crow hl"><span class="k">현재 주가</span><span class="v">${r.priceStr} ${fmt.deltaHtml(r.changePct)}</span></div>
       <div class="cspacer"></div>
       <div class="crow mnav">
-        <span class="k"><b>Enterprise mNAV · 기본주식 기준</b><i>${discStr} · ${r.capital.asOf}</i></span>
+        <span class="k"><b>Enterprise mNAV, ${r.mnavBasis}</b><i>${discStr}, ${r.capital.asOf}</i></span>
         <span class="v">${fmt.mnav(r.mnav)}</span>
       </div>
     </div>`;
@@ -627,10 +650,10 @@ function renderKrTable(rows) {
     const scopeBadge = r.scope === 'separate' ? '<span class="badge">별도 기준</span>'
       : r.scope === 'consolidated' ? '<span class="badge">연결 기준</span>' : '';
     const enterpriseCell = r.capital
-      ? `${fmt.mnav(r.enterpriseMnav)}<span class="metric-sub">부채 ${fmt.krwBig(r.capital.debt)} · 현금 ${fmt.krwBig(r.capital.cash)}</span>`
+      ? `${fmt.mnav(r.enterpriseMnav)}<span class="metric-sub">부채 ${fmt.krwBig(r.capital.debt)}, 현금 ${fmt.krwBig(r.capital.cash)}</span>`
       : '—';
     const dilutionCell = r.dilution
-      ? `${r.dilutionPct == null ? '—' : '+' + r.dilutionPct.toFixed(1) + '%'}<span class="metric-sub">CB ${fmt.int(r.dilution.cbShares)} · 옵션 ${fmt.int(r.dilution.optionShares)}</span>`
+      ? `${r.dilutionPct == null ? '—' : '+' + r.dilutionPct.toFixed(1) + '%'}<span class="metric-sub">CB ${fmt.int(r.dilution.cbShares)}, 옵션 ${fmt.int(r.dilution.optionShares)}</span>`
       : '—';
     const mergerCell = r.mergerMnav != null
       ? `<span class="metric-sub"><a href="${r.merger.source}" target="_blank" rel="noreferrer">합병가정 ${fmt.mnav(r.mergerMnav)}</a></span>`
@@ -653,7 +676,7 @@ function renderKrTable(rows) {
     ${kr.map(tr).join('')}`;
 }
 
-/* ================= 코인 보유량·주식수 복기 ================= */
+/* ================= 코인 보유량, 주식수 복기 ================= */
 const dayToStr = d => new Date(d * 86400000).toISOString().slice(0, 10);
 const strToDay = s => Math.floor(Date.parse(s) / 86400000);
 
@@ -726,10 +749,12 @@ function drawSeriesChart(container, cfg) {
   const startLbl = dayToStr(days[0]).slice(0, 7);
   xticks += `<text x="${x(0)}" y="${H - 5}" text-anchor="start">${yearly ? startLbl : Number(startLbl.slice(5)) + '월'}</text>`;
   let last = '';
+  let lastTickX = x(0) + 28;
   for (let i = 0; i < n; i++) {
     const ds = dayToStr(days[i]);
     const key = yearly ? ds.slice(0, 4) : ds.slice(0, 7);
-    if (i > 0 && key !== last && days[i] - days[0] > (yearly ? 90 : 12)) { // skip ticks crowding the start label
+    if (i > 0 && key !== last && x(i) - lastTickX >= 46 && x(i) < W - padR - 12) {
+      lastTickX = x(i);
       xticks += `<line class="gridline" x1="${x(i)}" y1="${padT}" x2="${x(i)}" y2="${H - padB}"></line>
                  <text x="${x(i)}" y="${H - 5}" text-anchor="middle">${yearly ? key : Number(key.slice(5)) + '월'}</text>`;
     }
@@ -778,7 +803,7 @@ function drawSeriesChart(container, cfg) {
 }
 
 function renderHistoryTabs() {
-  const names = { MSTR: 'MSTR (BTC)', BMNR: 'BMNR (ETH)', SBET: 'SBET (ETH)' };
+  const names = { MSTR: 'MSTR (BTC)', BMNR: 'BMNR (ETH)', SBET: 'SBET (ETH)', PURR: 'PURR (HYPE)' };
   $('#htabs').innerHTML = Object.keys(names).map(k =>
     `<button class="tab${state.tab === k ? ' active' : ''}" data-tab="${k}">${names[k]}</button>`).join('');
   $('#htabs').querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
@@ -794,6 +819,7 @@ function renderHistoryCharts() {
   if (!h || !T) { $('#hgrid').innerHTML = '<div class="section-desc">과거 데이터 로딩 중…</div>'; return; }
   const asset = T.asset;
   const coinH = h[asset], stockH = h[state.tab];
+  if (!coinH?.t?.length || !stockH?.t?.length) { $('#hgrid').innerHTML = '<div class="section-desc">해당 종목의 과거 시세가 없습니다.</div>'; return; }
   // 주가 시계열의 최초 시점부터 (트레저리 시작 전 구간은 주당보유량이 빈 값으로 표시됨)
   const startDay = Math.max(stockH.t[0], coinH.t[0]);
 
@@ -816,17 +842,17 @@ function renderHistoryCharts() {
   const B = getComputedStyle(document.documentElement).getPropertyValue('--series-1').trim();
   const G = getComputedStyle(document.documentElement).getPropertyValue('--series-2').trim();
   const tk = state.tab;
-  const sharesBasis = tk === 'MSTR' ? '가정 완전희석주식수' : '기본주식수';
+  const sharesBasis = tk === 'MSTR' ? '가정 완전희석주식수' : tk === 'PURR' ? '보통주+전환우선주' : '기본주식수';
   const charts = [
-    { title: `${tk} 주당 ${asset} 보유량 ×1m · ${asset} 가격`,
+    { title: `${tk} 주당 ${asset} 보유량 ×1m, ${asset} 가격`,
       series: [
         { name: `주당 ${asset} ×1m`, axis: 'L', type: 'area', color: G, kind: 'num', days, vals: perShare1m },
         { name: `${asset} 가격`, axis: 'R', type: 'line', color: B, kind: 'usd', days, vals: coinPx }] },
-    { title: `${tk} 주당 ${asset} 보유량 ×1m · ${sharesBasis}`,
+    { title: `${tk} 주당 ${asset} 보유량 ×1m, ${sharesBasis}`,
       series: [
         { name: `주당 ${asset} ×1m`, axis: 'L', type: 'area', color: G, kind: 'num', days, vals: perShare1m },
         { name: sharesBasis, axis: 'R', type: 'line', color: B, kind: 'shares', days, vals: sharesArr }] },
-    { title: `${tk} 주가 · ${asset} 가격`,
+    { title: `${tk} 주가, ${asset} 가격`,
       series: [
         { name: `${tk} 주가`, axis: 'L', type: 'line', color: G, kind: 'usdFull', days, vals: stockPx },
         { name: `${asset} 가격`, axis: 'R', type: 'line', color: B, kind: 'usd', days, vals: coinPx }] },
@@ -860,14 +886,14 @@ function renderUpdated(errs) {
     : '—';
   let staticNote = '';
   if (IS_STATIC && state.quotesAsOf) {
-    staticNote = ` · 주가·환율 ${clock(new Date(state.quotesAsOf))} 기준(수시간 지연 가능)`;
+    staticNote = `, 주가, 환율 ${clock(new Date(state.quotesAsOf))} 기준(수시간 지연 가능)`;
   }
   // 갱신 지연은 조용히: 헤더 우측에 회색 소문구로만 (마지막 정상 값이 계속 표시되므로)
-  const delay = errs && errs.length ? ` · <span title="${errs.join(', ')} 갱신 지연 — 마지막 정상 값 표시 중">일부 지연</span>` : '';
+  const delay = errs && errs.length ? `, <span title="${errs.join(', ')} 갱신 지연 — 마지막 정상 값 표시 중">일부 지연</span>` : '';
   const treasurySources = Object.values(TREASURY_LATEST._meta?.sources || {});
   const treasuryDelay = treasurySources.some(source => source.status !== 'ok')
-    ? ' · <span title="공식 보유량 원문 조회 지연 — 직전 검증값 표시 중">보유량 소스 일부 지연</span>' : '';
-  $('#updated').innerHTML = `마지막 갱신 ${t} · 코인 15초 갱신${staticNote}${delay}${treasuryDelay}`;
+    ? ', <span title="공식 보유량 원문 조회 지연 — 직전 검증값 표시 중">보유량 소스 일부 지연</span>' : '';
+  $('#updated').innerHTML = `마지막 갱신 ${t}, 코인 15초 갱신${staticNote}${delay}${treasuryDelay}`;
 }
 
 async function tick() {

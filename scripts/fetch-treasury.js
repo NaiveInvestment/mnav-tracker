@@ -2,6 +2,7 @@
 // A transient source failure keeps the last deployed value, while the validator
 // enforces freshness so a broken updater cannot remain invisible indefinitely.
 const { latestHoldingDate, readPayload, upsertPoint, writePayload } = require('./treasury-utils');
+const { fetchHyperliquid } = require('./fetch-hyperliquid');
 
 const STRATEGY_ASSETS_URL = 'https://www.strategy.com/assets';
 const STRATEGY_SHARES_URL = 'https://www.strategy.com/shares';
@@ -80,6 +81,15 @@ const BASELINE = {
     updateMode: 'auto-holdings',
     verifiedAt: '2026-07-15',
   },
+  PURR: {
+    shares: 300770000, commonShares: 274182353, preferredConversion: 26587647,
+    sharesAsOf: '2026-10-22', sharesLabel: '보통주+전환우선주',
+    holdings: [{ asset: 'HYPE', coins: 38850000, asOf: '2026-10-22' }],
+    capital: { debt: 0, preferred: 0, cash: 245350000, cashAsOf: '2026-10-22', debtAsOf: '2026-06-30' },
+    warrants: [{ shares: 640000, strike: 6.25 }, { shares: 600000, strike: 6.25 }, { shares: 9130000, strike: 9.38 }, { shares: 9130000, strike: 12.5 }, { shares: 9130000, strike: 18.75 }],
+    source: 'https://hypestrat.xyz/dashboard', sharesSource: 'https://hypestrat.xyz/dashboard',
+    updateMode: 'auto', verifiedAt: '2026-11-01',
+  },
   KR: {
     '377030': {
       holdings: [{ asset: 'BTC', coins: 551.504, asOf: '2026-06-30' }],
@@ -116,6 +126,7 @@ const BASELINE = {
     MSTR: { coins: [['2026-07-13', 843775]], shares: [['2026-07-12', 406099000]] },
     BMNR: { coins: [['2026-07-12', 5770038]], shares: [['2026-07-09', 603226394]] },
     SBET: { coins: [['2026-06-28', 886725]], shares: [['2026-06-26', 205091990]] },
+    PURR: { coins: [['2026-10-22', 38850000]], shares: [['2026-10-22', 300770000]] },
   },
   _meta: { sources: {} },
 };
@@ -282,6 +293,11 @@ function parseSharpLinkHoldings(text) {
 }
 
 async function fetchSharpLink() {
+  // The issuer now updates its dashboard weekly instead of issuing weekly 8-Ks.
+  try {
+    const data = await fetchJson('https://www.sharplink.com/api/dashboard/impact3-data', BROWSER_HEADERS);
+    return { holdings: [parseSharpLinkDashboard(data)], source: 'https://www.sharplink.com/dashboard', updateMode: 'auto-holdings', fetchedAt: new Date().toISOString() };
+  } catch (error) { console.warn(`Sharplink dashboard: ${error.message}; trying SEC`); }
   const submissions = await fetchJson(SHARPLINK_SUBMISSIONS_URL);
   const recent = submissions.filings?.recent;
   if (!recent) throw new Error('Sharplink SEC recent filings missing');
@@ -312,6 +328,13 @@ async function fetchSharpLink() {
   throw new Error('Sharplink ETH holdings not found in the latest 20 Form 8-K filings');
 }
 
+function parseSharpLinkDashboard(data) {
+  const rows = (data.total_eth_holdings || []).map(row => ({ asset: 'ETH', coins: Number(row['Total ETH Holdings']), asOf: isoDate(row.Date) }))
+    .filter(row => row.coins >= 100000 && row.coins <= 10000000).sort((a, b) => b.asOf.localeCompare(a.asOf));
+  if (!rows.length) throw new Error('Sharplink dashboard holdings missing');
+  return rows[0];
+}
+
 function xmlValue(block, tag) {
   const value = block.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'))?.[1];
   return value
@@ -332,6 +355,8 @@ function parseKoreanCount(token) {
 }
 
 function parseParataxisHoldings(text) {
+  const exact = text.match(/총\s*보유량(?:은|이|는|가|:)?\s*([\d,]+(?:\.\d+)?)\s*개/i);
+  if (exact) return numberValue(exact[1], 'Parataxis ETH');
   const sentences = text.match(/[^.!?。]*(?:총\s*보유량|총보유량)[^.!?。]*/g) || [];
   for (const sentence of sentences) {
     const counts = [...sentence.matchAll(/(\d[\d,\s]*만[\d,\s]*|\d[\d,]*)\s*개/g)]
@@ -349,6 +374,18 @@ function rssDate(pubDate) {
 }
 
 async function fetchParataxis() {
+  try {
+    const rows = await fetchJson('https://parataxis-eth-85b85.ondigitalocean.app/api/v2/ParataxisPressv2/GetAll?', BROWSER_HEADERS);
+    const reports = rows.filter(row => row.isActive).sort((a, b) => b.publishDate.localeCompare(a.publishDate));
+    for (const row of reports) {
+      const data = JSON.parse(row.data);
+      const text = htmlToText(data.koreanDescription || data.fullDescription || '');
+      const coins = parseParataxisHoldings(text);
+      if (coins == null) continue;
+      return { holdings: [{ asset: 'ETH', coins, asOf: row.publishDate.slice(0, 10) }], source: `https://parataxiseth.co.kr/press-details?id=${row.id}`, updateMode: 'auto', fetchedAt: new Date().toISOString() };
+    }
+    throw new Error('Parataxis official press holdings missing');
+  } catch (error) { console.warn(`Parataxis official press: ${error.message}; trying Newswire`); }
   const xml = await fetchText(PARATAXIS_RSS_URL, { ...DEFAULT_HEADERS, Accept: 'application/xml,text/xml' });
   const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].map(match => match[1]);
   for (const item of items) {
@@ -585,6 +622,9 @@ function carryPrevious(payload, previous) {
   payload._meta.sources = Object.fromEntries(Object.entries(clone(previous._meta?.sources || {}))
     .filter(([key]) => !key.startsWith('dart-') || Object.hasOwn(KR_DART_COMPANIES, key.slice(5))));
   carryHistory(payload, previous);
+  if (latestHoldingDate(previous.PURR) >= latestHoldingDate(payload.PURR)) {
+    payload.PURR = { ...payload.PURR, ...previous.PURR };
+  }
 
   const previousMstrDate = latestHoldingDate(previous.MSTR);
   if (previousMstrDate && previousMstrDate >= latestHoldingDate(payload.MSTR)) {
@@ -668,6 +708,14 @@ async function main() {
   carryPrevious(payload, previous);
 
   await Promise.all([
+    runSource(payload, 'hyperliquid', fetchHyperliquid, data => {
+      requireCurrentOrNewer(payload.PURR, data, 'Hyperliquid Strategies');
+      const { history, ...record } = data;
+      payload.PURR = record;
+      for (const field of ['coins', 'shares']) {
+        for (const [date, value] of history[field]) upsertPoint(payload._history.PURR[field], date, value);
+      }
+    }),
     runSource(payload, 'strategy', fetchStrategy, data => {
       requireCurrentOrNewer(payload.MSTR, data, 'Strategy');
       payload.MSTR = { ...payload.MSTR, ...data, capital: { ...payload.MSTR.capital, ...data.capital } };
@@ -729,5 +777,6 @@ module.exports = {
   parseParataxisHoldings,
   parseSecOutstandingShares,
   parseSharpLinkHoldings,
+  parseSharpLinkDashboard,
   rssDate,
 };

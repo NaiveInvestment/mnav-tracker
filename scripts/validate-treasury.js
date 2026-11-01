@@ -64,6 +64,14 @@ function main() {
   validateHolding(payload.SBET, 'ETH', 100000, 10000000, 75, 'SBET');
   check(Number.isSafeInteger(payload.SBET?.shares) && payload.SBET.shares >= 100000000, 'SBET: basic shares invalid');
 
+  validateHolding(payload.PURR, 'HYPE', 100000, 500000000, 28, 'PURR');
+  check(Number.isSafeInteger(payload.PURR?.shares) && payload.PURR.shares > 0, 'PURR: shares invalid');
+  check(payload.PURR?.shares === payload.PURR?.commonShares + payload.PURR?.preferredConversion, 'PURR: common + preferred shares do not reconcile');
+  for (const field of ['debt', 'preferred', 'cash']) check(Number.isFinite(payload.PURR?.capital?.[field]) && payload.PURR.capital[field] >= 0, `PURR: capital.${field} invalid`);
+  const purrHolding = payload.PURR?.holdings?.[0];
+  if (purrHolding) validateHistory(payload, 'PURR', 'coins', purrHolding.asOf, purrHolding.coins);
+  validateHistory(payload, 'PURR', 'shares', payload.PURR?.sharesAsOf, payload.PURR?.shares);
+
   validateHolding(payload.KR?.['290560'], 'ETH', 1000, 10000000, 75, '290560');
   for (const [code, min, max] of [
     ['377030', 1, 100000],
@@ -81,7 +89,7 @@ function main() {
     }
   }
 
-  for (const key of ['strategy', 'bitmine', 'bitmine-shares', 'sharplink', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330']) {
+  for (const key of ['strategy', 'bitmine', 'bitmine-shares', 'sharplink', 'hyperliquid', 'parataxis', 'dart-377030', 'dart-049470', 'dart-288330']) {
     const source = payload._meta?.sources?.[key];
     check(Boolean(source), `${key}: source attempt status missing`);
     if (source && source.status !== 'ok') warnings.push(`${key}: ${source.error || source.status}`);
