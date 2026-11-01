@@ -13,8 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  # The former pages group has a stuck run with no jobs that rejects cancellation.
-  group: pages-main-v2
+  # Use a fresh workflow and group after old pre-job runs rejected cancellation.
+  group: pages-publish-v3
   cancel-in-progress: true
 
 jobs:
